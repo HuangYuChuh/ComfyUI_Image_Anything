@@ -1,0 +1,179 @@
+{
+  "last_node_id": 5,
+  "last_link_id": 5,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "LoadImage",
+      "pos": [100, 100],
+      "size": [300, 300],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            1
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      }
+    },
+    {
+      "id": 2,
+      "type": "LoadImage",
+      "pos": [100, 450],
+      "size": [300, 300],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            2
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      }
+    },
+    {
+      "id": 3,
+      "type": "LoadImage",
+      "pos": [100, 800],
+      "size": [300, 300],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            3
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      }
+    },
+    {
+      "id": 4,
+      "type": "BatchImageSaver",
+      "pos": [500, 400],
+      "size": [450, 500],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "input_count",
+          "type": "INT",
+          "link": null,
+          "widgets_values": [3]
+        },
+        {
+          "name": "image_1",
+          "type": "IMAGE",
+          "link": 1
+        },
+        {
+          "name": "prefix_1",
+          "type": "STRING",
+          "link": null,
+          "widgets_values": ["封面"]
+        },
+        {
+          "name": "image_2",
+          "type": "IMAGE",
+          "link": 2
+        },
+        {
+          "name": "prefix_2",
+          "type": "STRING",
+          "link": null,
+          "widgets_values": ["细节"]
+        },
+        {
+          "name": "image_3",
+          "type": "IMAGE",
+          "link": 3
+        },
+        {
+          "name": "prefix_3",
+          "type": "STRING",
+          "link": null,
+          "widgets_values": ["对比"]
+        },
+        {
+          "name": "output_folder",
+          "type": "STRING",
+          "link": null,
+          "widgets_values": ["batch_saves"]
+        }
+      ],
+      "outputs": [
+        {
+          "name": "save_info",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "BatchImageSaver"
+      }
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      4,
+      1,
+      "IMAGE"
+    ],
+    [
+      2,
+      2,
+      0,
+      4,
+      3,
+      "IMAGE"
+    ],
+    [
+      3,
+      3,
+      0,
+      4,
+      5,
+      "IMAGE"
+    ]
+  ],
+  "config": {},
+  "extra": {},
+  "version": 0.4
+}

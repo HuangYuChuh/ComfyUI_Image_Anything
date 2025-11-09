@@ -1,0 +1,2 @@
+# This node uses only standard ComfyUI dependencies
+# No additional packages required
