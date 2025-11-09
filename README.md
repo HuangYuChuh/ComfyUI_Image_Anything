@@ -14,6 +14,7 @@ A powerful ComfyUI custom node for dynamic batch image saving with custom prefix
 - ✅ **动态输入**：支持 1-5 张图片的动态输入
 - ✅ **独立前缀**：每张图片可以设置单独的文件名前缀
 - ✅ **文本描述**：可输入关于图片的描述信息，保存到文件
+- ✅ **Prompt 保存**：自动保存 ComfyUI 的 Prompt 文本到独立文件
 - ✅ **文本保存**：输出文本信息同时保存到 save_info.txt 文件
 - ✅ **自动分组**：每次运行自动创建时间戳文件夹
 - ✅ **详细文本输出**：输出包含所有图片信息的文本
@@ -46,6 +47,7 @@ output/
 │   │   ├── 细节_02.png
 │   │   ├── 对比_03.png
 │   │   ├── save_info.txt           # 文本信息文件
+│   │   ├── prompt.txt              # ComfyUI Prompt 文本（如果有）
 │   │   └── metadata.json           # 完整元数据
 │   ├── task_20241109_144035/
 │   │   ├── 原图_01.png
@@ -80,6 +82,29 @@ output/
   [1] 封面_01.png (前缀: 封面)
   [2] 细节_02.png (前缀: 细节)
   [3] 对比_03.png (前缀: 对比)
+```
+
+### Prompt 文本示例 (prompt.txt)
+
+```
+=== ComfyUI Prompt ===
+
+Positive Prompt:
+a beautiful cat, sitting on a chair, soft lighting, high quality
+
+Negative Prompt:
+blurry, low quality, distorted
+
+=== Full Prompt JSON ===
+{
+  "3": {
+    "inputs": {
+      "text": "a beautiful cat, sitting on a chair, soft lighting, high quality",
+      "clip": ["4", 0]
+    },
+    "class_type": "CLIPTextEncode"
+  }
+}
 ```
 
 ## 🚀 Installation / 安装方法
@@ -137,7 +162,9 @@ After installation, find the node in / 安装后，在节点列表中查找：
 ### 元数据文件
 
 每个任务文件夹包含：
+- **`图片文件`**：前缀_序号.png 格式的图片文件
 - **`save_info.txt`**：文本输出信息（任务ID、时间戳、输出路径、所有图片信息）
+- **`prompt.txt`**：ComfyUI Prompt 文本（包含正向提示词、负向提示词和完整 JSON）
 - **`metadata.json`**：完整元数据（任务ID、时间戳、所有图片的完整信息、ComfyUI的prompt和extra_pnginfo等）
 
 ## 注意事项

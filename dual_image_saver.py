@@ -115,10 +115,10 @@ class BatchImageSaver:
         saved_files = []
 
         # 转换并保存图片
-        for i in range(1, input_count + 1):
+        for idx in range(1, input_count + 1):
             # 获取图片和前缀
-            image_key = f"image_{i}"
-            prefix_key = f"prefix_{i}"
+            image_key = f"image_{idx}"
+            prefix_key = f"prefix_{idx}"
 
             if image_key not in kwargs:
                 continue  # 跳过未连接的图片
@@ -127,63 +127,26 @@ class BatchImageSaver:
             prefix = kwargs.get(prefix_key, "image")
 
             # 转换 tensor 为 PIL 并保存
-            i_numpy = image_tensor.cpu().numpy()
-            original_shape = i_numpy.shape
+            # ComfyUI 图片是 (batch, height, width, channels) 格式
+            # 需要去掉 batch 维度才能传给 PIL
+            i_array = image_tensor.cpu().numpy()  # (1, height, width, 3)
 
-            # 先尝试与 ComfyUI 核心保持一致的方法
-            try:
-                i_numpy = 255. * i_numpy
-                img = Image.fromarray(np.clip(i_numpy, 0, 255).astype(np.uint8))
-            except (TypeError, ValueError):
-                # 如果失败，尝试多种备用方案
-                i_numpy = np.squeeze(i_numpy)
+            # 去掉 batch 维度（ComfyUI LoadImage 添加的）
+            if i_array.ndim == 4 and i_array.shape[0] == 1:
+                i_array = i_array[0]  # 变成 (height, width, 3)
 
-                # 尝试不同的处理策略
-                if i_numpy.ndim == 3:
-                    # (H, W, C) 或 (C, H, W)
-                    if i_numpy.shape[0] == 3 or i_numpy.shape[0] == 4:
-                        # (C, H, W) -> (H, W, C)
-                        i_numpy = np.transpose(i_numpy, (1, 2, 0))
-                    elif i_numpy.shape[0] == 1:
-                        # (1, H, W) -> (H, W)
-                        i_numpy = i_numpy.squeeze(0)
-                elif i_numpy.ndim == 2:
-                    # (H, W) - 保持不变
-                    pass
-                else:
-                    # 异常形状，尝试 reshape
-                    total_size = i_numpy.size
-                    if total_size == 3 * 512 * 512:
-                        i_numpy = i_numpy.reshape(512, 512, 3)
-                    elif total_size == 3 * 1024 * 1024:
-                        i_numpy = i_numpy.reshape(1024, 1024, 3)
-                    elif total_size == 3 * 768 * 768:
-                        i_numpy = i_numpy.reshape(768, 768, 3)
-                    else:
-                        # 最后一个尝试：假设是 (H, W) 格式
-                        # 但要确保 W 至少是 3（RGB 通道）
-                        h, w = i_numpy.shape
-                        if w < h and w <= 4:
-                            # 可能是 (W, H) 而不是 (H, W)，交换
-                            i_numpy = i_numpy.T
-                        # 如果还是不对，就尝试 reshape
-                        if i_numpy.ndim == 2 and i_numpy.shape[1] <= 4:
-                            # 假设形状是 (H*W, C)，重构
-                            img_array = np.zeros((h, 1, 3))
-                            img_array[:h, 0, :min(3, w)] = i_numpy[:, :3]
-                            i_numpy = img_array
-
-                i_numpy = 255. * i_numpy
-                img = Image.fromarray(np.clip(i_numpy, 0, 255).astype(np.uint8))
+            # 现在 i_array 是 (height, width, 3)，可以传给 PIL
+            i_array = 255. * i_array
+            img = Image.fromarray(np.clip(i_array, 0, 255).astype(np.uint8))
 
             # 生成文件名：前缀_序号.png
-            filename = f"{prefix}_{i:02d}.png"
+            filename = f"{prefix}_{idx:02d}.png"
             filepath = os.path.join(batch_dir, filename)
             img.save(filepath)
 
             # 记录信息
             images_info.append({
-                "index": i,
+                "index": idx,
                 "prefix": prefix,
                 "filename": filename,
                 "filepath": filepath
@@ -204,8 +167,10 @@ class BatchImageSaver:
         if description:
             metadata["description"] = description
 
+        # 添加 prompt 信息
         if prompt is not None:
             metadata["prompt"] = prompt
+
         if extra_pnginfo is not None:
             metadata["extra_pnginfo"] = extra_pnginfo
 
@@ -238,6 +203,12 @@ class BatchImageSaver:
         save_info_path = os.path.join(batch_dir, "save_info.txt")
         with open(save_info_path, 'w', encoding='utf-8') as f:
             f.write(save_info)
+
+        # 保存 Prompt 文本到单独文件（使用 description 参数的纯文本）
+        if description:
+            prompt_path = os.path.join(batch_dir, "prompt.txt")
+            with open(prompt_path, 'w', encoding='utf-8') as f:
+                f.write(description)
 
         # 返回文本信息
         return (save_info,)
