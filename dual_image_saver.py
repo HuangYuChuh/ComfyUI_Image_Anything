@@ -89,17 +89,32 @@ class BatchImageSaver:
         task_id = f"task_{timestamp}"
         batch_folder = task_id
 
-        # 确保主保存目录存在
-        if os.path.isabs(output_folder):
+        # 确定保存目录
+        # 检查是否为绝对路径（支持 Windows 和 Linux）
+        # Windows: C:\, D:\, E:\ 等
+        # Linux/Mac: /path/to/dir
+        is_absolute = (
+            os.path.isabs(output_folder) or  # 标准绝对路径
+            (len(output_folder) >= 3 and output_folder[1] == ':')  # Windows 盘符路径 (C:\, D:\, 等)
+        )
+
+        if is_absolute:
             base_dir = output_folder
         else:
             base_dir = os.path.join(folder_paths.get_output_directory(), output_folder)
 
+        # 创建主保存目录
         os.makedirs(base_dir, exist_ok=True)
 
-        # 创建批次特定文件夹
+        # 创建批次特定文件夹（时间戳子文件夹）
         batch_dir = os.path.join(base_dir, batch_folder)
         os.makedirs(batch_dir, exist_ok=True)
+
+        print(f"[DEBUG] 输入路径: {output_folder}")
+        print(f"[DEBUG] 是否为绝对路径: {is_absolute}")
+        print(f"[DEBUG] 父目录: {base_dir}")
+        print(f"[DEBUG] 任务目录: {batch_dir}")
+        print(f"[DEBUG] 文件将保存到: {batch_dir}")
 
         # 收集所有图片和前缀
         images_info = []
