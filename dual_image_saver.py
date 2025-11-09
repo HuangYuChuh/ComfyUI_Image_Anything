@@ -110,12 +110,6 @@ class BatchImageSaver:
         batch_dir = os.path.join(base_dir, batch_folder)
         os.makedirs(batch_dir, exist_ok=True)
 
-        print(f"[DEBUG] 输入路径: {output_folder}")
-        print(f"[DEBUG] 是否为绝对路径: {is_absolute}")
-        print(f"[DEBUG] 父目录: {base_dir}")
-        print(f"[DEBUG] 任务目录: {batch_dir}")
-        print(f"[DEBUG] 文件将保存到: {batch_dir}")
-
         # 收集所有图片和前缀
         images_info = []
         saved_files = []
