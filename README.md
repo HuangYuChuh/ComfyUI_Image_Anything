@@ -116,10 +116,23 @@ After installation, find the node in / 安装后，在节点列表中查找：
 4. 连接图片和设置前缀
 5. 运行工作流
 
-### 路径说明
+### 路径说明 / Path Guide
 
-- **相对路径**：如 "batch_saves" → 保存到 `ComfyUI/output/batch_saves/`
-- **绝对路径**：如 "/home/user/images" → 直接保存到指定目录
+**支持 Windows 和 Linux 绝对路径** / **支持 Windows 和 Linux 绝对路径**
+
+- **相对路径 / Relative Path**：`batch_saves` → 保存到 `ComfyUI/output/batch_saves/`
+- **Linux/Mac 绝对路径 / Linux/Mac Absolute Path**：`/home/user/images` → 直接保存到指定目录
+- **Windows 绝对路径 / Windows Absolute Path**：`D:\images` 或 `D:/images` → 直接保存到指定目录
+
+**文件组织结构 / File Organization**：
+```
+输入绝对路径: D:/images
+实际保存位置: D:/images/task_20241109_143022/
+├── 封面_01.png
+├── 细节_02.png
+├── save_info.txt
+└── metadata.json
+```
 
 ### 元数据文件
 
