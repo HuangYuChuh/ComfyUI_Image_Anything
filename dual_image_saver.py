@@ -25,14 +25,14 @@ class BatchImageSaver:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "input_count": ("INT", {
-                    "default": 2,
-                    "min": 1,
-                    "max": 5,
-                    "step": 1,
-                    "tooltip": "要输入的图片数量（1-5张）"
-                }),
                 "image_1": ("IMAGE", {"tooltip": "第一张图片"}),
+                # 文本输入接口 - 放在 image_1 下方
+                "description": ("STRING", {
+                    "default": "",
+                    "multiline": True,
+                    "placeholder": "输入关于这些图片的描述信息（可选）",
+                    "tooltip": "输入的文本会保存到文件中"
+                }),
                 "prefix_1": ("STRING", {
                     "default": "image",
                     "tooltip": "第一张图片的文件名前缀"
@@ -41,9 +41,15 @@ class BatchImageSaver:
                     "default": "batch_saves",
                     "tooltip": "输出文件夹名称（可使用相对或绝对路径）"
                 }),
+                "enabled": ("BOOLEAN", {
+                    "default": True,
+                    "label_on": "Enabled",
+                    "label_off": "Disabled",
+                    "tooltip": "启用或禁用此节点"
+                }),
             },
             "optional": {
-                # 预留的动态输入，ComfyUI 会根据 input_count 自动扩展
+                # 预定义的图片输入端口
                 "image_2": ("IMAGE", {"forceInput": True}),
                 "prefix_2": ("STRING", {"default": "image"}),
                 "image_3": ("IMAGE", {"forceInput": True}),
@@ -52,13 +58,6 @@ class BatchImageSaver:
                 "prefix_4": ("STRING", {"default": "image"}),
                 "image_5": ("IMAGE", {"forceInput": True}),
                 "prefix_5": ("STRING", {"default": "image"}),
-                # 文本输入接口
-                "description": ("STRING", {
-                    "default": "",
-                    "multiline": True,
-                    "placeholder": "输入关于这些图片的描述信息（可选）",
-                    "tooltip": "输入的文本会保存到文件中"
-                }),
             },
             "hidden": {
                 "prompt": "PROMPT",
@@ -70,20 +69,28 @@ class BatchImageSaver:
     RETURN_NAMES = ("save_info",)
     FUNCTION = "save_batch"
     OUTPUT_NODE = True
-    CATEGORY = "我的工具"
+    CATEGORY = "ComfyUI_Image_Anything"
     DESCRIPTION = "动态批量保存多张图片到独立工作流文件夹并输出文本信息"
 
-    def save_batch(self, input_count, output_folder="batch_saves", description="", prompt=None, extra_pnginfo=None, **kwargs):
+    def save_batch(self, image_1, description="", prefix_1="image", output_folder="batch_saves", enabled=True, prompt=None, extra_pnginfo=None, **kwargs):
         """
         批量保存图片到独立文件夹
 
         Args:
-            input_count: 图片数量
+            image_1: 第一张图片
+            description: 描述文本
+            prefix_1: 第一张图片的前缀
             output_folder: 输出文件夹名
+            enabled: 是否启用此节点
             prompt: ComfyUI 提示词（自动传入）
             extra_pnginfo: ComfyUI 额外信息（自动传入）
-            **kwargs: 动态图片和前缀输入，格式为 image_1, prefix_1, image_2, prefix_2, ...
+            **kwargs: 图片和前缀输入，格式为 image_1, prefix_1, image_2, prefix_2, ...
         """
+        # 检查是否启用
+        if not enabled:
+            # 如果未启用，返回空信息
+            return ("Node is disabled",)
+        
         # 生成唯一时间戳和文件夹名
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         task_id = f"task_{timestamp}"
@@ -114,14 +121,16 @@ class BatchImageSaver:
         images_info = []
         saved_files = []
 
-        # 转换并保存图片
-        for idx in range(1, input_count + 1):
+        # 转换并保存图片 - 最多处理5个预定义的输入
+        for idx in range(1, 6):  # 处理 image_1 到 image_5
             # 获取图片和前缀
             image_key = f"image_{idx}"
             prefix_key = f"prefix_{idx}"
 
+            # 检查是否提供了相应的图片输入
             if image_key not in kwargs:
-                continue  # 跳过未连接的图片
+                # 如果没有提供相应的图片输入，跳过该索引
+                continue
 
             image_tensor = kwargs[image_key]
             prefix = kwargs.get(prefix_key, "image")

@@ -129,7 +129,7 @@ git clone https://github.com/HuangYuChuh/ComfyUI_Image_Anything.git
 ---
 
 After installation, find the node in / 安装后，在节点列表中查找：
-**Category / 分类**: `我的工具` → `Dynamic Batch Image Saver`
+**Category / 分类**: `ComfyUI_Image_Anything` → `Dynamic Batch Image Saver`
 
 ## 使用说明
 
