@@ -85,7 +85,7 @@ class BatchImageSaver:
             enabled: 是否启用此节点
             prompt: ComfyUI 提示词（自动传入）
             extra_pnginfo: ComfyUI 额外信息（自动传入）
-            **kwargs: 图片和前缀输入，格式为 image_1, prefix_1, image_2, prefix_2, ...
+            **kwargs: 图片和前缀输入，格式为 image_2, prefix_2, image_3, prefix_3, ...
         """
         # 检查是否启用
         if not enabled:
@@ -122,8 +122,36 @@ class BatchImageSaver:
         images_info = []
         saved_files = []
 
-        # 转换并保存图片 - 最多处理5个预定义的输入
-        for idx in range(1, 6):  # 处理 image_1 到 image_5
+        # 首先处理 image_1 和 prefix_1 (必需参数)
+        # 转换 tensor 为 PIL 并保存
+        # ComfyUI 图片是 (batch, height, width, channels) 格式
+        # 需要去掉 batch 维度才能传给 PIL
+        i_array = image_1.cpu().numpy()  # (1, height, width, 3)
+
+        # 去掉 batch 维度（ComfyUI LoadImage 添加的）
+        if i_array.ndim == 4 and i_array.shape[0] == 1:
+            i_array = i_array[0]  # 变成 (height, width, 3)
+
+        # 现在 i_array 是 (height, width, 3)，可以传给 PIL
+        i_array = 255. * i_array
+        img = Image.fromarray(np.clip(i_array, 0, 255).astype(np.uint8))
+
+        # 生成文件名：前缀_序号.png
+        filename = f"{prefix_1}_01.png"
+        filepath = os.path.join(batch_dir, filename)
+        img.save(filepath)
+
+        # 记录信息
+        images_info.append({
+            "index": 1,
+            "prefix": prefix_1,
+            "filename": filename,
+            "filepath": filepath
+        })
+        saved_files.append(filepath)
+
+        # 转换并保存图片 - 最多处理5个预定义的输入 (从 image_2 开始)
+        for idx in range(2, 6):  # 处理 image_2 到 image_5
             # 获取图片和前缀
             image_key = f"image_{idx}"
             prefix_key = f"prefix_{idx}"
