@@ -1,4 +1,4 @@
-from .dual_image_saver import BatchImageSaver
+from .nodes.batch_image_saver import BatchImageSaver
 
 NODE_CLASS_MAPPINGS = {
     "BatchImageSaver": BatchImageSaver,

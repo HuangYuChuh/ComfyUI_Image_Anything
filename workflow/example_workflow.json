@@ -90,12 +90,6 @@
       "mode": 0,
       "inputs": [
         {
-          "name": "input_count",
-          "type": "INT",
-          "link": null,
-          "widgets_values": [3]
-        },
-        {
           "name": "image_1",
           "type": "IMAGE",
           "link": 1
@@ -129,10 +123,38 @@
           "widgets_values": ["对比"]
         },
         {
+          "name": "image_4",
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "prefix_4",
+          "type": "STRING",
+          "link": null,
+          "widgets_values": ["image"]
+        },
+        {
+          "name": "image_5",
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "prefix_5",
+          "type": "STRING",
+          "link": null,
+          "widgets_values": ["image"]
+        },
+        {
           "name": "output_folder",
           "type": "STRING",
           "link": null,
           "widgets_values": ["batch_saves"]
+        },
+        {
+          "name": "enabled",
+          "type": "BOOLEAN",
+          "link": null,
+          "widgets_values": [true]
         }
       ],
       "outputs": [
