@@ -20,6 +20,7 @@ A powerful ComfyUI custom node for dynamic batch image saving with custom prefix
 - ✅ **详细文本输出**：输出包含所有图片信息的文本
 - ✅ **JSON 元数据**：自动保存完整的元数据信息
 - ✅ **灵活路径**：支持自定义输出文件夹路径
+- ✅ **启用控制**：可通过 enabled 参数控制节点是否启用
 
 ## 节点参数
 
@@ -29,6 +30,7 @@ A powerful ComfyUI custom node for dynamic batch image saving with custom prefix
 - **image_1** (必需): 第一张图片
 - **prefix_1** (必需): 第一张图片的文件名前缀（默认："image"）
 - **output_folder** (必需): 输出文件夹名称（默认："batch_saves"）
+- **enabled** (可选): 是否启用此节点（默认：true）
 - **image_2 到 image_5** (可选): 更多图片输入（根据 input_count 自动扩展）
 - **prefix_2 到 prefix_5** (可选): 对应的文件名前缀
 - **description** (可选): 文本描述，会保存到文件中
@@ -46,6 +48,8 @@ output/
 │   │   ├── 封面_01.png             # 前缀_序号.png 格式
 │   │   ├── 细节_02.png
 │   │   ├── 对比_03.png
+│   │   ├── 局部_04.png
+│   │   ├── 全图_05.png
 │   │   ├── save_info.txt           # 文本信息文件
 │   │   ├── prompt.txt              # ComfyUI Prompt 文本（如果有）
 │   │   └── metadata.json           # 完整元数据
@@ -61,11 +65,12 @@ output/
 
 ### 基本用法
 
-1. 设置 **input_count** 为 3
-2. 依次连接 3 张图片到 `image_1`, `image_2`, `image_3`
-3. 设置前缀：`封面`、`细节`、`对比`
+1. 设置 **input_count** 为需要的图片数量 (1-5)
+2. 依次连接相应数量的图片到 `image_1` 到 `image_N`
+3. 设置对应的前缀，如：`封面`、`细节`、`对比`、`局部`、`全图`
 4. （可选）在 **description** 框中输入关于这些图片的描述信息
-5. 运行工作流
+5. （可选）通过 **enabled** 参数控制节点是否启用
+6. 运行工作流
 
 ### 输出文本示例
 
@@ -73,15 +78,17 @@ output/
 任务ID: task_20241109_143022
 时间戳: 20241109_143022
 输出目录: /output/batch_saves/task_20241109_143022
-图片数量: 3
+图片数量: 5
 
 描述信息:
-这是一次测试的图片保存任务，包含封面、细节和对比图。
+这是一次测试的图片保存任务，包含封面、细节、对比、局部和全图。
 
 保存的图片:
   [1] 封面_01.png (前缀: 封面)
   [2] 细节_02.png (前缀: 细节)
   [3] 对比_03.png (前缀: 对比)
+  [4] 局部_04.png (前缀: 局部)
+  [5] 全图_05.png (前缀: 全图)
 ```
 
 ### Prompt 文本示例 (prompt.txt)
@@ -139,7 +146,8 @@ After installation, find the node in / 安装后，在节点列表中查找：
 2. 点击节点上的 "更新" 按钮或重新加载工作流
 3. ComfyUI 会自动显示相应数量的输入接口
 4. 连接图片和设置前缀
-5. 运行工作流
+5. （可选）设置 **enabled** 参数控制节点启用状态
+6. 运行工作流
 
 ### 路径说明 / Path Guide
 
@@ -175,6 +183,7 @@ After installation, find the node in / 安装后，在节点列表中查找：
 - 只输出文本信息，不输出图片（纯保存节点）
 - input_count 范围：1-5
 - 未连接的图片输入会被自动跳过
+- 通过 enabled 参数可控制节点是否执行保存操作
 
 ## 🤝 Contributing / 贡献
 

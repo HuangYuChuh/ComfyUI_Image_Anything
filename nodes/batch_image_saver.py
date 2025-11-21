@@ -37,16 +37,6 @@ class BatchImageSaver:
                     "default": "image",
                     "tooltip": "第一张图片的文件名前缀"
                 }),
-                "output_folder": ("STRING", {
-                    "default": "batch_saves",
-                    "tooltip": "输出文件夹名称（可使用相对或绝对路径）"
-                }),
-                "enabled": ("BOOLEAN", {
-                    "default": True,
-                    "label_on": "Enabled",
-                    "label_off": "Disabled",
-                    "tooltip": "启用或禁用此节点"
-                }),
             },
             "optional": {
                 # 预定义的图片输入端口
@@ -58,6 +48,17 @@ class BatchImageSaver:
                 "prefix_4": ("STRING", {"default": "image"}),
                 "image_5": ("IMAGE", {"forceInput": True}),
                 "prefix_5": ("STRING", {"default": "image"}),
+                # 将 output_folder 和 enabled 放在最后
+                "output_folder": ("STRING", {
+                    "default": "batch_saves",
+                    "tooltip": "输出文件夹名称（可使用相对或绝对路径）"
+                }),
+                "enabled": ("BOOLEAN", {
+                    "default": True,
+                    "label_on": "Enabled",
+                    "label_off": "Disabled",
+                    "tooltip": "启用或禁用此节点"
+                }),
             },
             "hidden": {
                 "prompt": "PROMPT",
