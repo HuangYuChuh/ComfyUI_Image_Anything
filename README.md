@@ -5,14 +5,14 @@
 [![ComfyUI](https://img.shields.io/badge/ComfyUI-节点-blue)](https://github.com/comfyanonymous/ComfyUI)
 [![Python](https://img.shields.io/badge/Python-3.10+-blue)](https://www.python.org/)
 
-A powerful ComfyUI custom node for dynamic batch image saving with custom prefixes and automatic organization.
+A powerful ComfyUI custom node for dynamic batch image saving with custom save names and automatic organization.
 
 一个支持动态数量图片批量保存的 ComfyUI 扩展节点。
 
 ## ✨ Key Features / 主要功能
 
 - ✅ **动态输入**：支持 1-5 张图片的动态输入
-- ✅ **独立前缀**：每张图片可以设置单独的文件名前缀
+- ✅ **独立保存名称**：每张图片可以设置单独的保存名称
 - ✅ **文本描述**：可输入关于图片的描述信息，保存到文件
 - ✅ **Prompt 保存**：自动保存 ComfyUI 的 Prompt 文本到独立文件
 - ✅ **文本保存**：输出文本信息同时保存到 save_info.txt 文件
@@ -28,11 +28,11 @@ A powerful ComfyUI custom node for dynamic batch image saving with custom prefix
 
 - **input_count** (必需): 图片数量（1-5）
 - **image_1** (必需): 第一张图片
-- **prefix_1** (必需): 第一张图片的文件名前缀（默认："image"）
+- **save_name_1** (必需): 第一张图片的保存名称（默认："image"）
 - **output_folder** (必需): 输出文件夹名称（默认："batch_saves"）
 - **enabled** (可选): 是否启用此节点（默认：true）
 - **image_2 到 image_5** (可选): 更多图片输入（根据 input_count 自动扩展）
-- **prefix_2 到 prefix_5** (可选): 对应的文件名前缀
+- **save_name_2 到 save_name_5** (可选): 对应的保存名称
 - **description** (可选): 文本描述，会保存到文件中
 
 ### 输出结果
@@ -45,19 +45,19 @@ A powerful ComfyUI custom node for dynamic batch image saving with custom prefix
 output/
 ├── batch_saves/                    # 父文件夹（可自定义）
 │   ├── task_20241109_143022/       # 任务文件夹（每次运行创建）
-│   │   ├── 封面_01.png             # 前缀_序号.png 格式
+│   │   ├── 封面_01.png             # 保存名称_序号.png 格式
 │   │   ├── 细节_02.png
 │   │   ├── 对比_03.png
 │   │   ├── 局部_04.png
 │   │   ├── 全图_05.png
-│   │   ├── save_info.txt           # 文本信息文件
 │   │   ├── prompt.txt              # ComfyUI Prompt 文本（如果有）
-│   │   └── metadata.json           # 完整元数据
+│   │   ├── metadata.json           # 基本元数据（包含格式化文本）
+│   │   └── workflow.json           # 完整工作流文件（可直接加载）
 │   ├── task_20241109_144035/
 │   │   ├── 原图_01.png
 │   │   ├── 处理图_02.png
-│   │   ├── save_info.txt
-│   │   └── metadata.json
+│   │   ├── metadata.json
+│   │   └── workflow_metadata.json
 │   └── ...
 ```
 
@@ -67,7 +67,7 @@ output/
 
 1. 设置 **input_count** 为需要的图片数量 (1-5)
 2. 依次连接相应数量的图片到 `image_1` 到 `image_N`
-3. 设置对应的前缀，如：`封面`、`细节`、`对比`、`局部`、`全图`
+3. 设置对应的保存名称，如：`封面`、`细节`、`对比`、`局部`、`全图`
 4. （可选）在 **description** 框中输入关于这些图片的描述信息
 5. （可选）通过 **enabled** 参数控制节点是否启用
 6. 运行工作流
@@ -84,11 +84,11 @@ output/
 这是一次测试的图片保存任务，包含封面、细节、对比、局部和全图。
 
 保存的图片:
-  [1] 封面_01.png (前缀: 封面)
-  [2] 细节_02.png (前缀: 细节)
-  [3] 对比_03.png (前缀: 对比)
-  [4] 局部_04.png (前缀: 局部)
-  [5] 全图_05.png (前缀: 全图)
+  [1] 封面_01.png (保存名称: 封面)
+  [2] 细节_02.png (保存名称: 细节)
+  [3] 对比_03.png (保存名称: 对比)
+  [4] 局部_04.png (保存名称: 局部)
+  [5] 全图_05.png (保存名称: 全图)
 ```
 
 ### Prompt 文本示例 (prompt.txt)
@@ -145,7 +145,7 @@ After installation, find the node in / 安装后，在节点列表中查找：
 1. 首先设置 **input_count** 参数（要保存的图片数量）
 2. 点击节点上的 "更新" 按钮或重新加载工作流
 3. ComfyUI 会自动显示相应数量的输入接口
-4. 连接图片和设置前缀
+4. 连接图片和设置保存名称
 5. （可选）设置 **enabled** 参数控制节点启用状态
 6. 运行工作流
 
@@ -170,15 +170,15 @@ After installation, find the node in / 安装后，在节点列表中查找：
 ### 元数据文件
 
 每个任务文件夹包含：
-- **`图片文件`**：前缀_序号.png 格式的图片文件
-- **`save_info.txt`**：文本输出信息（任务ID、时间戳、输出路径、所有图片信息）
+- **`图片文件`**：保存名称_序号.png 格式的图片文件
 - **`prompt.txt`**：ComfyUI Prompt 文本（包含正向提示词、负向提示词和完整 JSON）
-- **`metadata.json`**：完整元数据（任务ID、时间戳、所有图片的完整信息、ComfyUI的prompt和extra_pnginfo等）
+- **`metadata.json`**：基本元数据（任务ID、时间戳、输出目录、图片数量和图片信息等，不含ComfyUI工作流数据），同时包含格式化的文本信息
+- **`workflow.json`**：完整的ComfyUI工作流文件（可以直接拖拽到ComfyUI中加载使用）
 
 ## 注意事项
 
 - 每次运行工作流都会创建新的时间戳文件夹
-- 文件命名格式：`前缀_序号.png`（序号为 01, 02, 03...）
+- 文件命名格式：`保存名称_序号.png`（序号为 01, 02, 03...）
 - 文本信息（description）会自动保存到 save_info.txt 和 metadata.json 文件
 - 只输出文本信息，不输出图片（纯保存节点）
 - input_count 范围：1-5

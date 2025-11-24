@@ -33,21 +33,21 @@ class BatchImageSaver:
                     "placeholder": "输入关于这些图片的描述信息（可选）",
                     "tooltip": "输入的文本会保存到文件中"
                 }),
-                "prefix_1": ("STRING", {
+                "save_name_1": ("STRING", {
                     "default": "image",
-                    "tooltip": "第一张图片的文件名前缀"
+                    "tooltip": "第一张图片的保存名称"
                 }),
             },
             "optional": {
                 # 预定义的图片输入端口
                 "image_2": ("IMAGE", {"forceInput": True}),
-                "prefix_2": ("STRING", {"default": "image"}),
+                "save_name_2": ("STRING", {"default": "image"}),
                 "image_3": ("IMAGE", {"forceInput": True}),
-                "prefix_3": ("STRING", {"default": "image"}),
+                "save_name_3": ("STRING", {"default": "image"}),
                 "image_4": ("IMAGE", {"forceInput": True}),
-                "prefix_4": ("STRING", {"default": "image"}),
+                "save_name_4": ("STRING", {"default": "image"}),
                 "image_5": ("IMAGE", {"forceInput": True}),
-                "prefix_5": ("STRING", {"default": "image"}),
+                "save_name_5": ("STRING", {"default": "image"}),
                 # 将 output_folder 和 enabled 放在最后
                 "output_folder": ("STRING", {
                     "default": "batch_saves",
@@ -73,19 +73,19 @@ class BatchImageSaver:
     CATEGORY = "ComfyUI_Image_Anything"
     DESCRIPTION = "动态批量保存多张图片到独立工作流文件夹并输出文本信息"
 
-    def save_batch(self, image_1, description="", prefix_1="image", output_folder="batch_saves", enabled=True, prompt=None, extra_pnginfo=None, **kwargs):
+    def save_batch(self, image_1, description="", save_name_1="image", output_folder="batch_saves", enabled=True, prompt=None, extra_pnginfo=None, **kwargs):
         """
         批量保存图片到独立文件夹
 
         Args:
             image_1: 第一张图片
             description: 描述文本
-            prefix_1: 第一张图片的前缀
+            save_name_1: 第一张图片的保存名称
             output_folder: 输出文件夹名
             enabled: 是否启用此节点
             prompt: ComfyUI 提示词（自动传入）
             extra_pnginfo: ComfyUI 额外信息（自动传入）
-            **kwargs: 图片和前缀输入，格式为 image_2, prefix_2, image_3, prefix_3, ...
+            **kwargs: 图片和保存名称输入，格式为 image_2, save_name_2, image_3, save_name_3, ...
         """
         # 检查是否启用
         if not enabled:
@@ -136,15 +136,17 @@ class BatchImageSaver:
         i_array = 255. * i_array
         img = Image.fromarray(np.clip(i_array, 0, 255).astype(np.uint8))
 
-        # 生成文件名：前缀_序号.png
-        filename = f"{prefix_1}_01.png"
+        # 清理保存名称中的路径分隔符，避免被解释为子目录
+        clean_save_name_1 = save_name_1.replace('/', '_').replace('\\', '_')
+        # 生成文件名：保存名称_序号.png
+        filename = f"{clean_save_name_1}_01.png"
         filepath = os.path.join(batch_dir, filename)
         img.save(filepath)
 
         # 记录信息
         images_info.append({
             "index": 1,
-            "prefix": prefix_1,
+            "save_name": save_name_1,
             "filename": filename,
             "filepath": filepath
         })
@@ -152,9 +154,9 @@ class BatchImageSaver:
 
         # 转换并保存图片 - 最多处理5个预定义的输入 (从 image_2 开始)
         for idx in range(2, 6):  # 处理 image_2 到 image_5
-            # 获取图片和前缀
+            # 获取图片和保存名称
             image_key = f"image_{idx}"
-            prefix_key = f"prefix_{idx}"
+            save_name_key = f"save_name_{idx}"
 
             # 检查是否提供了相应的图片输入
             if image_key not in kwargs:
@@ -162,7 +164,7 @@ class BatchImageSaver:
                 continue
 
             image_tensor = kwargs[image_key]
-            prefix = kwargs.get(prefix_key, "image")
+            save_name = kwargs.get(save_name_key, "image")
 
             # 转换 tensor 为 PIL 并保存
             # ComfyUI 图片是 (batch, height, width, channels) 格式
@@ -177,21 +179,23 @@ class BatchImageSaver:
             i_array = 255. * i_array
             img = Image.fromarray(np.clip(i_array, 0, 255).astype(np.uint8))
 
-            # 生成文件名：前缀_序号.png
-            filename = f"{prefix}_{idx:02d}.png"
+            # 清理保存名称中的路径分隔符，避免被解释为子目录
+            clean_save_name = save_name.replace('/', '_').replace('\\', '_')
+            # 生成文件名：保存名称_序号.png
+            filename = f"{clean_save_name}_{idx:02d}.png"
             filepath = os.path.join(batch_dir, filename)
             img.save(filepath)
 
             # 记录信息
             images_info.append({
                 "index": idx,
-                "prefix": prefix,
+                "save_name": save_name,
                 "filename": filename,
                 "filepath": filepath
             })
             saved_files.append(filepath)
 
-        # 保存元数据文件
+        # 保存元数据文件（不包含ComfyUI工作流信息以避免混淆）
         metadata = {
             "task_id": task_id,
             "timestamp": timestamp,
@@ -205,18 +209,7 @@ class BatchImageSaver:
         if description:
             metadata["description"] = description
 
-        # 添加 prompt 信息
-        if prompt is not None:
-            metadata["prompt"] = prompt
-
-        if extra_pnginfo is not None:
-            metadata["extra_pnginfo"] = extra_pnginfo
-
-        metadata_path = os.path.join(batch_dir, "metadata.json")
-        with open(metadata_path, 'w', encoding='utf-8') as f:
-            json.dump(metadata, f, indent=2, ensure_ascii=False)
-
-        # 创建文本信息
+        # 将save_info内容也添加到metadata中，以便在metadata.json中保留格式化文本
         save_info_lines = [
             f"任务ID: {task_id}",
             f"时间戳: {timestamp}",
@@ -233,14 +226,20 @@ class BatchImageSaver:
         save_info_lines.append("")
         save_info_lines.append("保存的图片:")
         for img_info in images_info:
-            save_info_lines.append(f"  [{img_info['index']}] {img_info['filename']} (前缀: {img_info['prefix']})")
+            save_info_lines.append(f"  [{img_info['index']}] {img_info['filename']} (保存名称: {img_info['save_name']})")
 
         save_info = "\n".join(save_info_lines)
+        metadata["save_info_text"] = save_info  # 添加格式化文本到metadata
 
-        # 保存文本信息到文件
-        save_info_path = os.path.join(batch_dir, "save_info.txt")
-        with open(save_info_path, 'w', encoding='utf-8') as f:
-            f.write(save_info)
+        # 保存可直接加载的完整ComfyUI工作流文件
+        if extra_pnginfo is not None and "workflow" in extra_pnginfo:
+            workflow_path = os.path.join(batch_dir, "workflow.json")
+            with open(workflow_path, 'w', encoding='utf-8') as f:
+                json.dump(extra_pnginfo["workflow"], f, indent=2, ensure_ascii=False)
+
+        metadata_path = os.path.join(batch_dir, "metadata.json")
+        with open(metadata_path, 'w', encoding='utf-8') as f:
+            json.dump(metadata, f, indent=2, ensure_ascii=False)
 
         # 保存 Prompt 文本到单独文件（使用 description 参数的纯文本）
         if description:
