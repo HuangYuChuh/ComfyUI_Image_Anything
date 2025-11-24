@@ -95,7 +95,7 @@
           "link": 1
         },
         {
-          "name": "prefix_1",
+          "name": "save_name_1",
           "type": "STRING",
           "link": null,
           "widgets_values": ["封面"]
@@ -106,7 +106,7 @@
           "link": 2
         },
         {
-          "name": "prefix_2",
+          "name": "save_name_2",
           "type": "STRING",
           "link": null,
           "widgets_values": ["细节"]
@@ -117,7 +117,7 @@
           "link": 3
         },
         {
-          "name": "prefix_3",
+          "name": "save_name_3",
           "type": "STRING",
           "link": null,
           "widgets_values": ["对比"]
@@ -128,7 +128,7 @@
           "link": null
         },
         {
-          "name": "prefix_4",
+          "name": "save_name_4",
           "type": "STRING",
           "link": null,
           "widgets_values": ["image"]
@@ -139,7 +139,7 @@
           "link": null
         },
         {
-          "name": "prefix_5",
+          "name": "save_name_5",
           "type": "STRING",
           "link": null,
           "widgets_values": ["image"]
