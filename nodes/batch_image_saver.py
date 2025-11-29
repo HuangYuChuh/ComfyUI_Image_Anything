@@ -26,12 +26,24 @@ class BatchImageSaver:
         return {
             "required": {
                 "image_1": ("IMAGE", {"tooltip": "第一张图片"}),
-                # 文本输入接口 - 放在 image_1 下方
+                # 文本输入接口 - 来自上游节点的单行文本输入
+                "title": ("STRING", {
+                    "default": "",
+                    "multiline": False,
+                    "placeholder": "标题文本（来自上游节点）",
+                    "tooltip": "接收上游节点的标题文本输出"
+                }),
                 "description": ("STRING", {
                     "default": "",
-                    "multiline": True,
-                    "placeholder": "输入关于这些图片的描述信息（可选）",
-                    "tooltip": "输入的文本会保存到文件中"
+                    "multiline": False,
+                    "placeholder": "描述文本（来自上游节点）",
+                    "tooltip": "接收上游节点的描述文本输出"
+                }),
+                "text_prompt": ("STRING", {
+                    "default": "",
+                    "multiline": False,
+                    "placeholder": "Prompt文本（来自上游节点）",
+                    "tooltip": "接收上游节点的Prompt文本输出"
                 }),
                 "save_name_1": ("STRING", {
                     "default": "image",
@@ -73,17 +85,19 @@ class BatchImageSaver:
     CATEGORY = "ComfyUI_Image_Anything"
     DESCRIPTION = "动态批量保存多张图片到独立工作流文件夹并输出文本信息"
 
-    def save_batch(self, image_1, description="", save_name_1="image", output_folder="batch_saves", enabled=True, prompt=None, extra_pnginfo=None, **kwargs):
+    def save_batch(self, image_1, title="", description="", text_prompt="", save_name_1="image", output_folder="batch_saves", enabled=True, prompt=None, extra_pnginfo=None, **kwargs):
         """
         批量保存图片到独立文件夹
 
         Args:
             image_1: 第一张图片
-            description: 描述文本
+            title: 标题文本（来自上游节点）
+            description: 描述文本（来自上游节点）
+            text_prompt: Prompt文本（来自上游节点）
             save_name_1: 第一张图片的保存名称
             output_folder: 输出文件夹名
             enabled: 是否启用此节点
-            prompt: ComfyUI 提示词（自动传入）
+            prompt: ComfyUI 提示词元数据（自动传入）
             extra_pnginfo: ComfyUI 额外信息（自动传入）
             **kwargs: 图片和保存名称输入，格式为 image_2, save_name_2, image_3, save_name_3, ...
         """
@@ -205,9 +219,13 @@ class BatchImageSaver:
             "images": images_info
         }
 
-        # 如果有描述文本，添加到元数据中
+        # 添加所有文本内容到元数据中
+        if title:
+            metadata["title"] = title
         if description:
             metadata["description"] = description
+        if text_prompt:
+            metadata["prompt"] = text_prompt
 
         # 将save_info内容也添加到metadata中，以便在metadata.json中保留格式化文本
         save_info_lines = [
@@ -217,11 +235,19 @@ class BatchImageSaver:
             f"图片数量: {len(images_info)}",
         ]
 
-        # 如果有描述文本，添加到输出中
+        # 添加所有文本信息到输出中
+        text_sections = []
+        if title:
+            text_sections.append(f"标题: {title}")
         if description:
+            text_sections.append(f"描述: {description}")
+        if text_prompt:
+            text_sections.append(f"Prompt: {text_prompt}")
+
+        if text_sections:
             save_info_lines.append("")
-            save_info_lines.append("描述信息:")
-            save_info_lines.append(description)
+            save_info_lines.append("文本信息:")
+            save_info_lines.extend(text_sections)
 
         save_info_lines.append("")
         save_info_lines.append("保存的图片:")
@@ -241,11 +267,21 @@ class BatchImageSaver:
         with open(metadata_path, 'w', encoding='utf-8') as f:
             json.dump(metadata, f, indent=2, ensure_ascii=False)
 
-        # 保存 Prompt 文本到单独文件（使用 description 参数的纯文本）
+        # 保存各个文本到对应的文件
+        if title:
+            title_path = os.path.join(batch_dir, "title.txt")
+            with open(title_path, 'w', encoding='utf-8') as f:
+                f.write(title)
+
         if description:
+            description_path = os.path.join(batch_dir, "description.txt")
+            with open(description_path, 'w', encoding='utf-8') as f:
+                f.write(description)
+
+        if text_prompt:
             prompt_path = os.path.join(batch_dir, "prompt.txt")
             with open(prompt_path, 'w', encoding='utf-8') as f:
-                f.write(description)
+                f.write(text_prompt)
 
         # 返回文本信息
         return (save_info,)
