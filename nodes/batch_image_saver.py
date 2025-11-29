@@ -6,6 +6,460 @@ from PIL import Image
 import folder_paths
 from datetime import datetime
 
+class ImageCollector:
+    """
+    图片收集器节点 - 用于收集一组图片及其保存名称
+
+    功能：
+    - 收集1-5张图片（可选输入）
+    - 为每张图片设置对应的保存名称
+    - 打包输出供主节点使用
+    """
+
+    def __init__(self):
+        self.type = "collector"
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {},
+            "optional": {
+                # 5个可选的图片输入
+                "image_1": ("IMAGE", {"forceInput": True}),
+                "save_name_1": ("STRING", {"default": "image"}),
+                "image_2": ("IMAGE", {"forceInput": True}),
+                "save_name_2": ("STRING", {"default": "image"}),
+                "image_3": ("IMAGE", {"forceInput": True}),
+                "save_name_3": ("STRING", {"default": "image"}),
+                "image_4": ("IMAGE", {"forceInput": True}),
+                "save_name_4": ("STRING", {"default": "image"}),
+                "image_5": ("IMAGE", {"forceInput": True}),
+                "save_name_5": ("STRING", {"default": "image"}),
+            },
+        }
+
+    RETURN_TYPES = ("IMAGE_BATCH", "STRING")
+    RETURN_NAMES = ("image_batch", "batch_info")
+    FUNCTION = "collect_images"
+    OUTPUT_NODE = False
+    CATEGORY = "ComfyUI_Image_Anything"
+    DESCRIPTION = "收集1-5张图片及其保存名称，打包输出给主节点"
+
+    def collect_images(self, **kwargs):
+        """
+        收集图片和对应的保存名称
+
+        Args:
+            **kwargs: 包含image_1-5和save_name_1-5的可选参数
+
+        Returns:
+            image_batch: 打包的图片批次数据
+            batch_info: 批次信息字符串
+        """
+        collected_images = []
+        total_count = 0
+
+        # 检查每个可选的图片输入
+        for i in range(1, 6):
+            image_key = f"image_{i}"
+            save_name_key = f"save_name_{i}"
+
+            # 如果图片输入存在
+            if image_key in kwargs and kwargs[image_key] is not None:
+                image_tensor = kwargs[image_key]
+                save_name = kwargs.get(save_name_key, "image")
+
+                # 转换tensor为numpy数组
+                i_array = image_tensor.cpu().numpy()
+                if i_array.ndim == 4 and i_array.shape[0] == 1:
+                    i_array = i_array[0]
+
+                # 转换为PIL Image
+                i_array = 255. * i_array
+                img = Image.fromarray(np.clip(i_array, 0, 255).astype(np.uint8))
+
+                collected_images.append({
+                    "image": img,
+                    "save_name": save_name,
+                    "original_index": i
+                })
+                total_count += 1
+
+        # 构建批次数据
+        batch_data = {
+            "images": collected_images,
+            "total_count": total_count
+        }
+
+        # 生成批次信息
+        batch_info = f"收集了 {total_count} 张图片"
+
+        return (batch_data, batch_info)
+
+
+class TextCollector:
+    """
+    文本收集器节点 - 用于收集标题、描述和Prompt文本
+
+    功能：
+    - 收集可选的标题、描述、Prompt文本
+    - 打包输出供主节点使用
+    """
+
+    def __init__(self):
+        self.type = "text_collector"
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {},
+            "optional": {
+                # 文本输入接口
+                "title": ("STRING", {
+                    "default": "",
+                    "multiline": False,
+                    "placeholder": "标题文本",
+                    "tooltip": "图片的标题"
+                }),
+                "description": ("STRING", {
+                    "default": "",
+                    "multiline": False,
+                    "placeholder": "描述文本",
+                    "tooltip": "图片的描述信息"
+                }),
+                "text_prompt": ("STRING", {
+                    "default": "",
+                    "multiline": False,
+                    "placeholder": "Prompt文本",
+                    "tooltip": "生成图片的Prompt"
+                }),
+            },
+        }
+
+    RETURN_TYPES = ("TEXT_BATCH", "STRING")
+    RETURN_NAMES = ("text_batch", "text_info")
+    FUNCTION = "collect_text"
+    OUTPUT_NODE = False
+    CATEGORY = "ComfyUI_Image_Anything"
+    DESCRIPTION = "收集标题、描述和Prompt文本，打包输出给主节点"
+
+    def collect_text(self, title="", description="", text_prompt="", **kwargs):
+        """
+        收集文本信息
+
+        Args:
+            title: 标题文本
+            description: 描述文本
+            text_prompt: Prompt文本
+            **kwargs: 额外参数（预留）
+
+        Returns:
+            text_batch: 打包的文本批次数据
+            text_info: 文本信息字符串
+        """
+        text_data = {
+            "title": title,
+            "description": description,
+            "prompt": text_prompt
+        }
+
+        # 统计非空文本数量
+        non_empty_count = sum(1 for text in [title, description, text_prompt] if text.strip())
+
+        # 生成文本信息
+        text_info = f"收集了 {non_empty_count} 个文本字段"
+        if non_empty_count == 0:
+            text_info = "未收集到任何文本"
+
+        return (text_data, text_info)
+
+class BatchImageSaverV2:
+    """
+    重构的批量图片保存节点 - 接收多个图片批次输入
+
+    功能：
+    - 接收多个ImageCollector的输出
+    - 动态汇总所有图片
+    - 统一保存到时间戳文件夹
+    """
+
+    def __init__(self):
+        self.type = "output"
+        self.prefix_append = ""
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                # 统一文本输入（向后兼容）
+                "title": ("STRING", {
+                    "default": "",
+                    "multiline": False,
+                    "placeholder": "统一标题文本",
+                    "tooltip": "所有图片的统一标题（可选）"
+                }),
+                "description": ("STRING", {
+                    "default": "",
+                    "multiline": False,
+                    "placeholder": "统一描述文本",
+                    "tooltip": "所有图片的统一描述（可选）"
+                }),
+                "text_prompt": ("STRING", {
+                    "default": "",
+                    "multiline": False,
+                    "placeholder": "统一Prompt文本",
+                    "tooltip": "所有图片的统一Prompt（可选）"
+                }),
+            },
+            "optional": {
+                # 多个图片批次输入（可以连接多个ImageCollector）
+                "batch_1": ("IMAGE_BATCH", {"forceInput": True}),
+                "text_batch_1": ("TEXT_BATCH", {"forceInput": True}),
+                "batch_2": ("IMAGE_BATCH", {"forceInput": True}),
+                "text_batch_2": ("TEXT_BATCH", {"forceInput": True}),
+                "batch_3": ("IMAGE_BATCH", {"forceInput": True}),
+                "text_batch_3": ("TEXT_BATCH", {"forceInput": True}),
+                "batch_4": ("IMAGE_BATCH", {"forceInput": True}),
+                "text_batch_4": ("TEXT_BATCH", {"forceInput": True}),
+                "batch_5": ("IMAGE_BATCH", {"forceInput": True}),
+                "text_batch_5": ("TEXT_BATCH", {"forceInput": True}),
+                "batch_6": ("IMAGE_BATCH", {"forceInput": True}),
+                "text_batch_6": ("TEXT_BATCH", {"forceInput": True}),
+                "batch_7": ("IMAGE_BATCH", {"forceInput": True}),
+                "text_batch_7": ("TEXT_BATCH", {"forceInput": True}),
+                "batch_8": ("IMAGE_BATCH", {"forceInput": True}),
+                "text_batch_8": ("TEXT_BATCH", {"forceInput": True}),
+                # 输出设置
+                "output_folder": ("STRING", {
+                    "default": "batch_saves",
+                    "tooltip": "输出文件夹名称（可使用相对或绝对路径）"
+                }),
+                "enabled": ("BOOLEAN", {
+                    "default": True,
+                    "label_on": "Enabled",
+                    "label_off": "Disabled",
+                    "tooltip": "启用或禁用此节点"
+                }),
+            },
+            "hidden": {
+                "prompt": "PROMPT",
+                "extra_pnginfo": "EXTRA_PNGINFO"
+            },
+        }
+
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("save_info",)
+    FUNCTION = "save_batches"
+    OUTPUT_NODE = True
+    CATEGORY = "ComfyUI_Image_Anything"
+    DESCRIPTION = "接收多个图片批次，统一保存到独立工作流文件夹"
+
+    def save_batches(self, title="", description="", text_prompt="", output_folder="batch_saves", enabled=True, prompt=None, extra_pnginfo=None, **kwargs):
+        """
+        批量保存多个图片批次到独立文件夹
+
+        Args:
+            title: 标题文本（来自上游节点）
+            description: 描述文本（来自上游节点）
+            text_prompt: Prompt文本（来自上游节点）
+            output_folder: 输出文件夹名
+            enabled: 是否启用此节点
+            prompt: ComfyUI 提示词元数据（自动传入）
+            extra_pnginfo: ComfyUI 额外信息（自动传入）
+            **kwargs: 包含batch_1, batch_2, ...的图片批次输入
+        """
+        # 检查是否启用
+        if not enabled:
+            return ("Node is disabled",)
+
+        # 生成唯一时间戳和文件夹名
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        task_id = f"task_{timestamp}"
+        batch_folder = task_id
+
+        # 确定保存目录
+        is_absolute = (
+            os.path.isabs(output_folder) or
+            (len(output_folder) >= 3 and output_folder[1] == ':')
+        )
+
+        if is_absolute:
+            base_dir = output_folder
+        else:
+            base_dir = os.path.join(folder_paths.get_output_directory(), output_folder)
+
+        # 创建主保存目录
+        os.makedirs(base_dir, exist_ok=True)
+
+        # 创建批次特定文件夹（时间戳子文件夹）
+        batch_dir = os.path.join(base_dir, batch_folder)
+        os.makedirs(batch_dir, exist_ok=True)
+
+        # 收集所有图片（重新编号）
+        all_images = []
+        saved_files = []
+        global_index = 1
+
+        # 处理所有连接的批次
+        for batch_idx in range(1, 9):  # 最多支持8个批次
+            batch_key = f"batch_{batch_idx}"
+
+            # 检查批次输入是否存在
+            if batch_key not in kwargs or kwargs[batch_key] is None:
+                continue
+
+            batch_data = kwargs[batch_key]
+
+            # 验证批次数据格式
+            if not isinstance(batch_data, dict) or "images" not in batch_data:
+                continue
+
+            batch_images = batch_data["images"]
+
+            # 处理批次中的每张图片（重新编号）
+            for img_data in batch_images:
+                img = img_data["image"]
+                save_name = img_data["save_name"]
+                original_index = img_data["original_index"]
+
+                # 清理保存名称
+                clean_save_name = save_name.replace('/', '_').replace('\\', '_')
+
+                # 生成新文件名（全局编号）
+                filename = f"{clean_save_name}_{global_index:02d}.png"
+                filepath = os.path.join(batch_dir, filename)
+
+                # 保存图片
+                img.save(filepath)
+
+                # 记录信息
+                all_images.append({
+                    "global_index": global_index,
+                    "save_name": save_name,
+                    "filename": filename,
+                    "filepath": filepath,
+                    "source_batch": batch_idx,
+                    "source_index": original_index
+                })
+                saved_files.append(filepath)
+                global_index += 1
+
+        # 如果没有保存任何图片，返回提示信息
+        if not all_images:
+            return ("No images to save",)
+
+        # 处理文本批次 - 优先使用文本批次，回退到统一文本
+        final_title = title
+        final_description = description
+        final_prompt = text_prompt
+
+        # 检查是否有文本批次（按顺序，第一个有效的优先）
+        for batch_idx in range(1, 9):
+            text_batch_key = f"text_batch_{batch_idx}"
+            if text_batch_key in kwargs and kwargs[text_batch_key] is not None:
+                text_batch = kwargs[text_batch_key]
+                if isinstance(text_batch, dict):
+                    # 使用文本批次中的内容（如果非空）
+                    if not final_title and text_batch.get("title"):
+                        final_title = text_batch["title"]
+                    if not final_description and text_batch.get("description"):
+                        final_description = text_batch["description"]
+                    if not final_prompt and text_batch.get("prompt"):
+                        final_prompt = text_batch["prompt"]
+                    # 找到第一个有效的就停止（保持简单逻辑）
+                    break
+
+        # 保存元数据文件
+        metadata = {
+            "task_id": task_id,
+            "timestamp": timestamp,
+            "output_folder": output_folder,
+            "batch_dir": batch_dir,
+            "total_images": len(all_images),
+            "images": all_images
+        }
+
+        # 添加文本内容到元数据中
+        if final_title:
+            metadata["title"] = final_title
+        if final_description:
+            metadata["description"] = final_description
+        if final_prompt:
+            metadata["prompt"] = final_prompt
+
+        # 构建输出信息
+        save_info_lines = [
+            f"任务ID: {task_id}",
+            f"时间戳: {timestamp}",
+            f"输出目录: {batch_dir}",
+            f"图片总数: {len(all_images)}",
+        ]
+
+        # 按批次显示统计
+        batch_stats = {}
+        for img in all_images:
+            batch = img["source_batch"]
+            batch_stats[batch] = batch_stats.get(batch, 0) + 1
+
+        if len(batch_stats) > 1:
+            save_info_lines.append("")
+            save_info_lines.append("批次统计:")
+            for batch, count in sorted(batch_stats.items()):
+                save_info_lines.append(f"  批次{batch}: {count} 张图片")
+
+        # 添加文本信息
+        text_sections = []
+        if final_title:
+            text_sections.append(f"标题: {final_title}")
+        if final_description:
+            text_sections.append(f"描述: {final_description}")
+        if final_prompt:
+            text_sections.append(f"Prompt: {final_prompt}")
+
+        if text_sections:
+            save_info_lines.append("")
+            save_info_lines.append("文本信息:")
+            save_info_lines.extend(text_sections)
+
+        # 添加保存的图片列表
+        save_info_lines.append("")
+        save_info_lines.append("保存的图片:")
+        for img_info in all_images:
+            save_info_lines.append(f"  [{img_info['global_index']:02d}] {img_info['filename']}")
+
+        save_info = "\n".join(save_info_lines)
+        metadata["save_info_text"] = save_info
+
+        # 保存ComfyUI工作流文件
+        if extra_pnginfo is not None and "workflow" in extra_pnginfo:
+            workflow_path = os.path.join(batch_dir, "workflow.json")
+            with open(workflow_path, 'w', encoding='utf-8') as f:
+                json.dump(extra_pnginfo["workflow"], f, indent=2, ensure_ascii=False)
+
+        # 保存元数据文件
+        metadata_path = os.path.join(batch_dir, "metadata.json")
+        with open(metadata_path, 'w', encoding='utf-8') as f:
+            json.dump(metadata, f, indent=2, ensure_ascii=False)
+
+        # 保存各个文本文件
+        if final_title:
+            title_path = os.path.join(batch_dir, "title.txt")
+            with open(title_path, 'w', encoding='utf-8') as f:
+                f.write(final_title)
+
+        if final_description:
+            description_path = os.path.join(batch_dir, "description.txt")
+            with open(description_path, 'w', encoding='utf-8') as f:
+                f.write(final_description)
+
+        if final_prompt:
+            prompt_path = os.path.join(batch_dir, "prompt.txt")
+            with open(prompt_path, 'w', encoding='utf-8') as f:
+                f.write(final_prompt)
+
+        return (save_info,)
+
+
 class BatchImageSaver:
     """
     动态批量保存图片到独立工作流文件夹的节点
@@ -60,6 +514,16 @@ class BatchImageSaver:
                 "save_name_4": ("STRING", {"default": "image"}),
                 "image_5": ("IMAGE", {"forceInput": True}),
                 "save_name_5": ("STRING", {"default": "image"}),
+                "image_6": ("IMAGE", {"forceInput": True}),
+                "save_name_6": ("STRING", {"default": "image"}),
+                "image_7": ("IMAGE", {"forceInput": True}),
+                "save_name_7": ("STRING", {"default": "image"}),
+                "image_8": ("IMAGE", {"forceInput": True}),
+                "save_name_8": ("STRING", {"default": "image"}),
+                "image_9": ("IMAGE", {"forceInput": True}),
+                "save_name_9": ("STRING", {"default": "image"}),
+                "image_10": ("IMAGE", {"forceInput": True}),
+                "save_name_10": ("STRING", {"default": "image"}),
                 # 将 output_folder 和 enabled 放在最后
                 "output_folder": ("STRING", {
                     "default": "batch_saves",
@@ -166,8 +630,8 @@ class BatchImageSaver:
         })
         saved_files.append(filepath)
 
-        # 转换并保存图片 - 最多处理5个预定义的输入 (从 image_2 开始)
-        for idx in range(2, 6):  # 处理 image_2 到 image_5
+        # 转换并保存图片 - 最多处理10个预定义的输入 (从 image_2 开始)
+        for idx in range(2, 11):  # 处理 image_2 到 image_10
             # 获取图片和保存名称
             image_key = f"image_{idx}"
             save_name_key = f"save_name_{idx}"

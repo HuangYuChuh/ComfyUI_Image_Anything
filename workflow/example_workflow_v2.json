@@ -1,0 +1,132 @@
+{
+  "last_node_id": 20,
+  "last_link_id": 25,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "ImageCollector",
+      "pos": [100, 100],
+      "size": [300, 200],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "outputs": [
+        {
+          "name": "image_batch",
+          "type": "IMAGE_BATCH",
+          "links": [10],
+          "shape": 3
+        },
+        {
+          "name": "batch_info",
+          "type": "STRING",
+          "links": null,
+          "shape": 3
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageCollector"
+      },
+      "widgets_values": ["group_A"]
+    },
+    {
+      "id": 2,
+      "type": "ImageCollector",
+      "pos": [100, 350],
+      "size": [300, 200],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "outputs": [
+        {
+          "name": "image_batch",
+          "type": "IMAGE_BATCH",
+          "links": [11],
+          "shape": 3
+        },
+        {
+          "name": "batch_info",
+          "type": "STRING",
+          "links": null,
+          "shape": 3
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageCollector"
+      },
+      "widgets_values": ["group_B"]
+    },
+    {
+      "id": 10,
+      "type": "BatchImageSaverV2",
+      "pos": [500, 200],
+      "size": [400, 300],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "batch_1",
+          "type": "IMAGE_BATCH",
+          "link": 10,
+          "shape": 7
+        },
+        {
+          "name": "batch_2",
+          "type": "IMAGE_BATCH",
+          "link": 11,
+          "shape": 7
+        },
+        {
+          "name": "title",
+          "type": "STRING",
+          "link": null,
+          "widget": {
+            "name": "title"
+          },
+          "shape": 7
+        },
+        {
+          "name": "description",
+          "type": "STRING",
+          "link": null,
+          "widget": {
+            "name": "description"
+          },
+          "shape": 7
+        },
+        {
+          "name": "text_prompt",
+          "type": "STRING",
+          "link": null,
+          "widget": {
+            "name": "text_prompt"
+          },
+          "shape": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "save_info",
+          "type": "STRING",
+          "links": null,
+          "shape": 3
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "BatchImageSaverV2"
+      },
+      "widgets_values": ["", "", "", "batch_saves", true]
+    }
+  ],
+  "links": [
+    [10, 1, 0, 10, 0, "IMAGE_BATCH"],
+    [11, 2, 0, 10, 1, "IMAGE_BATCH"]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "info": "ComfyUI V2 模块化批量图片保存示例工作流\n\n使用说明：\n1. 添加 ImageCollector 子节点（可添加多个）\n2. 连接1-5张图片到每个子节点\n3. 设置对应的保存名称\n4. 将子节点的 image_batch 输出连接到 BatchImageSaverV2\n5. （可选）设置标题、描述、Prompt等文本信息\n6. 运行工作流\n\n扩展方法：\n- 需要更多图片？复制 ImageCollector 节点并连接\n- 支持任意数量的图片，只需添加更多子节点"
+  },
+  "version": 0.4
+}
