@@ -9,9 +9,33 @@ A powerful ComfyUI custom node for dynamic batch image saving with custom save n
 
 一个支持动态数量图片批量保存的 ComfyUI 扩展节点。
 
+## 🆕 New V2 Modular Design / 新V2模块化设计
+
+**2025年11月更新**：新增模块化设计，支持更灵活的图片收集和保存！
+
+### V2 新功能
+- ✅ **完全解耦架构**：图片和文本都可独立模块化
+- ✅ **ImageCollector子节点**：收集1-5张图片（可选输入）
+- ✅ **TextCollector子节点**：收集标题、描述、Prompt文本
+- ✅ **BatchImageSaverV2主节点**：接收多个图片+文本批次，统一保存
+- ✅ **无限扩展**：通过复制子节点支持任意数量图片和文本
+- ✅ **智能重新编号**：全局统一编号，保持顺序
+- ✅ **灵活组合**：图片批次可配对文本批次，也可使用统一文本
+- ✅ **向后兼容**：保留原始版本供选择使用
+
 ## ✨ Key Features / 主要功能
 
-- ✅ **动态输入**：支持 1-5 张图片的动态输入
+### V2 模块化版本
+- ✅ **完全解耦**：ImageCollector + TextCollector + BatchImageSaverV2
+- ✅ **可选输入**：图片和文本子节点都支持可选输入
+- ✅ **多批次支持**：主节点可接收多个图片+文本批次
+- ✅ **灵活配对**：每个图片批次可配对对应的文本批次
+- ✅ **动态扩展**：需要更多内容只需复制相应子节点
+- ✅ **统一编号**：自动重新编号，保持全局顺序
+- ✅ **智能优先级**：文本批次优先于统一文本（当统一文本为空时）
+
+### 原始版本功能
+- ✅ **动态输入**：支持 1-10 张图片的动态输入
 - ✅ **独立保存名称**：每张图片可以设置单独的保存名称
 - ✅ **文本描述**：可输入关于图片的描述信息，保存到文件
 - ✅ **Prompt 保存**：自动保存 ComfyUI 的 Prompt 文本到独立文件
@@ -63,7 +87,64 @@ output/
 
 ## 使用示例
 
-### 基本用法
+### V2 模块化版本使用方法
+
+#### 基本工作流程（图片+统一文本）
+
+1. **添加图片收集器**：在工作流中添加 `Image Collector` 节点
+2. **连接图片**：将1-5张图片连接到子节点的 `image_1` 到 `image_5` 输入
+3. **设置保存名称**：为每张图片设置对应的保存名称
+4. **添加主节点**：添加 `Dynamic Batch Image Saver (V2)` 节点
+5. **连接图片批次**：将子节点的 `image_batch` 输出连接到主节点的 `batch_1` 输入
+6. **设置统一文本**：（可选）在主节点设置统一的标题、描述、Prompt
+7. **运行工作流**
+
+#### 高级工作流程（图片+对应文本）
+
+1. **添加图片收集器**：添加 `Image Collector` 节点（如 Collector A）
+2. **添加文本收集器**：添加 `Text Collector` 节点（如 Text A）
+3. **配置内容**：
+   - 在 Collector A 中连接图片并设置保存名称
+   - 在 Text A 中设置对应的标题、描述、Prompt
+4. **添加主节点**：添加 `Dynamic Batch Image Saver (V2)` 节点
+5. **连接批次**：
+   - 将 Collector A 的 `image_batch` 连接到主节点的 `batch_1`
+   - 将 Text A 的 `text_batch` 连接到主节点的 `text_batch_1`
+6. **运行工作流**
+
+#### 混合工作流程（多组图片+文本）
+
+```
+[图片1-5] → [ImageCollector A] → batch_1 → \
+[文本A] → [TextCollector A] → text_batch_1 →  → [BatchImageSaverV2]
+[图片6-7] → [ImageCollector B] → batch_2 → /
+[文本B] → [TextCollector B] → text_batch_2 → /
+
+或者混合模式：
+
+[图片1-5] → [ImageCollector A] → batch_1 → \
+                                     → [BatchImageSaverV2] ← 统一文本
+[图片6-7] → [ImageCollector B] → batch_2 → /
+```
+
+#### 扩展示例（15张图片）
+
+```
+[图片1-5] → [ImageCollector A] → batch_1 → \
+[图片6-10] → [ImageCollector B] → batch_2 → → [BatchImageSaverV2] → 保存
+[图片11-15] → [ImageCollector C] → batch_3 → /
+```
+
+#### 灵活组合（7张图片）
+
+```
+[图片1-5] → [ImageCollector A] → batch_1 → \
+[图片6-7] → [ImageCollector B] → batch_2 → → [BatchImageSaverV2] → 保存
+```
+
+### 原始版本使用方法
+
+#### 基本用法
 
 1. 设置 **input_count** 为需要的图片数量 (1-5)
 2. 依次连接相应数量的图片到 `image_1` 到 `image_N`
@@ -72,7 +153,34 @@ output/
 5. （可选）通过 **enabled** 参数控制节点是否启用
 6. 运行工作流
 
-### 输出文本示例
+### V2版本输出示例
+
+```
+任务ID: task_20241129_143022
+时间戳: 20241129_143022
+输出目录: /output/batch_saves/task_20241129_143022
+图片总数: 7
+
+分组统计:
+  group_A: 5 张图片
+  group_B: 2 张图片
+
+文本信息:
+标题: 测试标题
+描述: 测试描述
+Prompt: 测试prompt
+
+保存的图片:
+  [01] 封面_01.png (来源: group_A)
+  [02] 细节_02.png (来源: group_A)
+  [03] 对比_03.png (来源: group_A)
+  [04] 局部_04.png (来源: group_A)
+  [05] 全图_05.png (来源: group_A)
+  [06] 特写_06.png (来源: group_B)
+  [07] 放大_07.png (来源: group_B)
+```
+
+### 原始版本输出示例
 
 ```
 任务ID: task_20241109_143022
@@ -136,7 +244,14 @@ git clone https://github.com/HuangYuChuh/ComfyUI_Image_Anything.git
 ---
 
 After installation, find the node in / 安装后，在节点列表中查找：
-**Category / 分类**: `ComfyUI_Image_Anything` → `Dynamic Batch Image Saver`
+
+**V2 模块化版本 / V2 Modular Version**:
+- `ComfyUI_Image_Anything` → `Image Collector` (图片收集器 / Image Collector)
+- `ComfyUI_Image_Anything` → `Text Collector` (文本收集器 / Text Collector)
+- `ComfyUI_Image_Anything` → `Dynamic Batch Image Saver (V2)` (主节点 / Main node)
+
+**原始版本 / Original Version**:
+- `ComfyUI_Image_Anything` → `Dynamic Batch Image Saver (V1)`
 
 ## 使用说明
 

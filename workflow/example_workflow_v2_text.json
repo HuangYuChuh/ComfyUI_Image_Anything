@@ -1,0 +1,200 @@
+{
+  "last_node_id": 30,
+  "last_link_id": 40,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "ImageCollector",
+      "pos": [100, 100],
+      "size": [300, 200],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "outputs": [
+        {
+          "name": "image_batch",
+          "type": "IMAGE_BATCH",
+          "links": [10],
+          "shape": 3
+        },
+        {
+          "name": "batch_info",
+          "type": "STRING",
+          "links": null,
+          "shape": 3
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageCollector"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 2,
+      "type": "TextCollector",
+      "pos": [100, 350],
+      "size": [300, 150],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "outputs": [
+        {
+          "name": "text_batch",
+          "type": "TEXT_BATCH",
+          "links": [11],
+          "shape": 3
+        },
+        {
+          "name": "text_info",
+          "type": "STRING",
+          "links": null,
+          "shape": 3
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "TextCollector"
+      },
+      "widgets_values": ["批次A标题", "批次A描述", "批次APrompt"]
+    },
+    {
+      "id": 3,
+      "type": "ImageCollector",
+      "pos": [500, 100],
+      "size": [300, 200],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "outputs": [
+        {
+          "name": "image_batch",
+          "type": "IMAGE_BATCH",
+          "links": [12],
+          "shape": 3
+        },
+        {
+          "name": "batch_info",
+          "type": "STRING",
+          "links": null,
+          "shape": 3
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageCollector"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 4,
+      "type": "TextCollector",
+      "pos": [500, 350],
+      "size": [300, 150],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "outputs": [
+        {
+          "name": "text_batch",
+          "type": "TEXT_BATCH",
+          "links": [13],
+          "shape": 3
+        },
+        {
+          "name": "text_info",
+          "type": "STRING",
+          "links": null,
+          "shape": 3
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "TextCollector"
+      },
+      "widgets_values": ["批次B标题", "批次B描述", "批次BPrompt"]
+    },
+    {
+      "id": 10,
+      "type": "BatchImageSaverV2",
+      "pos": [900, 200],
+      "size": [400, 350],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "batch_1",
+          "type": "IMAGE_BATCH",
+          "link": 10,
+          "shape": 7
+        },
+        {
+          "name": "text_batch_1",
+          "type": "TEXT_BATCH",
+          "link": 11,
+          "shape": 7
+        },
+        {
+          "name": "batch_2",
+          "type": "IMAGE_BATCH",
+          "link": 12,
+          "shape": 7
+        },
+        {
+          "name": "text_batch_2",
+          "type": "TEXT_BATCH",
+          "link": 13,
+          "shape": 7
+        },
+        {
+          "name": "title",
+          "type": "STRING",
+          "link": null,
+          "widget": {
+            "name": "title"
+          },
+          "shape": 7
+        },
+        {
+          "name": "description",
+          "type": "STRING",
+          "link": null,
+          "widget": {
+            "name": "description"
+          },
+          "shape": 7
+        },
+        {
+          "name": "text_prompt",
+          "type": "STRING",
+          "link": null,
+          "widget": {
+            "name": "text_prompt"
+          },
+          "shape": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "save_info",
+          "type": "STRING",
+          "links": null,
+          "shape": 3
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "BatchImageSaverV2"
+      },
+      "widgets_values": ["", "", "", "batch_saves", true]
+    }
+  ],
+  "links": [
+    [10, 1, 0, 10, 0, "IMAGE_BATCH"],
+    [11, 2, 0, 10, 1, "TEXT_BATCH"],
+    [12, 3, 0, 10, 2, "IMAGE_BATCH"],
+    [13, 4, 0, 10, 3, "TEXT_BATCH"]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "info": "ComfyUI V2 模块化批量图片保存 + 文本解耦示例工作流\n\n使用说明：\n1. 添加 ImageCollector 子节点（可添加多个）\n2. 添加 TextCollector 子节点（可添加多个）\n3. 连接1-5张图片到每个 ImageCollector\n4. 设置对应的保存名称和文本内容\n5. 将 ImageCollector 的 image_batch 和 TextCollector 的 text_batch \n   分别连接到 BatchImageSaverV2 对应的 batch_X 和 text_batch_X\n6. （可选）也可以在主节点设置统一文本\n7. 运行工作流\n\n扩展方法：\n- 需要更多图片？复制 ImageCollector 节点并连接\n- 需要更多文本？复制 TextCollector 节点并连接\n- 支持任意数量的图片和文本组合"
+  },
+  "version": 0.4
+}
