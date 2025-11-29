@@ -16,11 +16,11 @@ A powerful ComfyUI custom node for dynamic batch image saving with custom save n
 ### V2 新功能
 - ✅ **完全解耦架构**：图片和文本都可独立模块化
 - ✅ **ImageCollector子节点**：收集1-5张图片（可选输入）
-- ✅ **TextCollector子节点**：收集标题、描述、Prompt文本
+- ✅ **TextCollector子节点**：接收文件内容（file_content + file_name）
 - ✅ **BatchImageSaverV2主节点**：接收多个图片+文本批次，统一保存
-- ✅ **无限扩展**：通过复制子节点支持任意数量图片和文本
+- ✅ **无限扩展**：通过复制子节点支持任意数量图片和文本文件
 - ✅ **智能重新编号**：全局统一编号，保持顺序
-- ✅ **灵活组合**：图片批次可配对文本批次，也可使用统一文本
+- ✅ **灵活组合**：每个图片批次可配对对应的文本批次
 - ✅ **向后兼容**：保留原始版本供选择使用
 
 ## ✨ Key Features / 主要功能
@@ -30,9 +30,10 @@ A powerful ComfyUI custom node for dynamic batch image saving with custom save n
 - ✅ **可选输入**：图片和文本子节点都支持可选输入
 - ✅ **多批次支持**：主节点可接收多个图片+文本批次
 - ✅ **灵活配对**：每个图片批次可配对对应的文本批次
+- ✅ **5字段文本**：TextCollector支持5个通用文本字段（text_1到text_5）
 - ✅ **动态扩展**：需要更多内容只需复制相应子节点
 - ✅ **统一编号**：自动重新编号，保持全局顺序
-- ✅ **智能优先级**：文本批次优先于统一文本（当统一文本为空时）
+- ✅ **简洁设计**：主节点移除统一文本输入，完全依赖TextCollector
 
 ### 原始版本功能
 - ✅ **动态输入**：支持 1-10 张图片的动态输入
@@ -89,15 +90,16 @@ output/
 
 ### V2 模块化版本使用方法
 
-#### 基本工作流程（图片+统一文本）
+#### 基本工作流程（仅图片）
 
 1. **添加图片收集器**：在工作流中添加 `Image Collector` 节点
 2. **连接图片**：将1-5张图片连接到子节点的 `image_1` 到 `image_5` 输入
 3. **设置保存名称**：为每张图片设置对应的保存名称
 4. **添加主节点**：添加 `Dynamic Batch Image Saver (V2)` 节点
 5. **连接图片批次**：将子节点的 `image_batch` 输出连接到主节点的 `batch_1` 输入
-6. **设置统一文本**：（可选）在主节点设置统一的标题、描述、Prompt
-7. **运行工作流**
+6. **运行工作流**
+
+> **注意**：如果需要文本信息，必须添加 `Text Collector` 节点并连接到主节点的 `text_batch_1` 输入。
 
 #### 高级工作流程（图片+对应文本）
 
@@ -105,12 +107,14 @@ output/
 2. **添加文本收集器**：添加 `Text Collector` 节点（如 Text A）
 3. **配置内容**：
    - 在 Collector A 中连接图片并设置保存名称
-   - 在 Text A 中设置对应的标题、描述、Prompt
+   - 在 Text A 中设置5个通用文本字段（text_1到text_5，可输入任意内容）
 4. **添加主节点**：添加 `Dynamic Batch Image Saver (V2)` 节点
 5. **连接批次**：
    - 将 Collector A 的 `image_batch` 连接到主节点的 `batch_1`
    - 将 Text A 的 `text_batch` 连接到主节点的 `text_batch_1`
 6. **运行工作流**
+
+> **注意**：BatchImageSaverV2主节点不再有统一的文本输入字段，所有文本内容必须通过TextCollector提供。
 
 #### 混合工作流程（多组图片+文本）
 

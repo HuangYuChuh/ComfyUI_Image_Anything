@@ -99,11 +99,13 @@ class ImageCollector:
 
 class TextCollector:
     """
-    文本收集器节点 - 用于收集标题、描述和Prompt文本
+    文本收集器节点 - 用于收集多个可自定义名称的文本内容
 
     功能：
-    - 收集可选的标题、描述、Prompt文本
-    - 打包输出供主节点使用
+    - 支持5个文本输入（text_1 到 text_5），每个都是可选的
+    - 每个文本都有对应的文件名（name_1 到 name_5）
+    - 用户可以为每个文本指定自定义的保存名称
+    - 完全灵活，适应不同使用场景
     """
 
     def __init__(self):
@@ -114,24 +116,41 @@ class TextCollector:
         return {
             "required": {},
             "optional": {
-                # 文本输入接口
-                "title": ("STRING", {
-                    "default": "",
+                # 5个可选的文本输入 + 对应的文件名
+                "text_1": ("STRING", {"forceInput": True, "tooltip": "第一个文本内容"}),
+                "name_1": ("STRING", {
+                    "default": "text_1",
                     "multiline": False,
-                    "placeholder": "标题文本",
-                    "tooltip": "图片的标题"
+                    "placeholder": "文件名1",
+                    "tooltip": "第一个文本的保存文件名"
                 }),
-                "description": ("STRING", {
-                    "default": "",
+                "text_2": ("STRING", {"forceInput": True, "tooltip": "第二个文本内容"}),
+                "name_2": ("STRING", {
+                    "default": "text_2",
                     "multiline": False,
-                    "placeholder": "描述文本",
-                    "tooltip": "图片的描述信息"
+                    "placeholder": "文件名2",
+                    "tooltip": "第二个文本的保存文件名"
                 }),
-                "text_prompt": ("STRING", {
-                    "default": "",
+                "text_3": ("STRING", {"forceInput": True, "tooltip": "第三个文本内容"}),
+                "name_3": ("STRING", {
+                    "default": "text_3",
                     "multiline": False,
-                    "placeholder": "Prompt文本",
-                    "tooltip": "生成图片的Prompt"
+                    "placeholder": "文件名3",
+                    "tooltip": "第三个文本的保存文件名"
+                }),
+                "text_4": ("STRING", {"forceInput": True, "tooltip": "第四个文本内容"}),
+                "name_4": ("STRING", {
+                    "default": "text_4",
+                    "multiline": False,
+                    "placeholder": "文件名4",
+                    "tooltip": "第四个文本的保存文件名"
+                }),
+                "text_5": ("STRING", {"forceInput": True, "tooltip": "第五个文本内容"}),
+                "name_5": ("STRING", {
+                    "default": "text_5",
+                    "multiline": False,
+                    "placeholder": "文件名5",
+                    "tooltip": "第五个文本的保存文件名"
                 }),
             },
         }
@@ -141,35 +160,50 @@ class TextCollector:
     FUNCTION = "collect_text"
     OUTPUT_NODE = False
     CATEGORY = "ComfyUI_Image_Anything"
-    DESCRIPTION = "收集标题、描述和Prompt文本，打包输出给主节点"
+    DESCRIPTION = "收集多个可自定义名称的文本内容，打包输出给主节点"
 
-    def collect_text(self, title="", description="", text_prompt="", **kwargs):
+    def collect_text(self, **kwargs):
         """
-        收集文本信息
+        收集多个文本内容和对应的文件名
 
         Args:
-            title: 标题文本
-            description: 描述文本
-            text_prompt: Prompt文本
-            **kwargs: 额外参数（预留）
+            **kwargs: 包含text_1-5和name_1-5的可选参数
 
         Returns:
             text_batch: 打包的文本批次数据
             text_info: 文本信息字符串
         """
-        text_data = {
-            "title": title,
-            "description": description,
-            "prompt": text_prompt
-        }
+        text_files = []
 
-        # 统计非空文本数量
-        non_empty_count = sum(1 for text in [title, description, text_prompt] if text.strip())
+        # 处理5个文本输入
+        for i in range(1, 6):
+            text_key = f"text_{i}"
+            name_key = f"name_{i}"
+
+            # 检查文本输入是否存在且非空
+            if text_key in kwargs and kwargs[text_key] is not None:
+                text_content = kwargs[text_key]
+                if text_content.strip():  # 只处理非空文本
+                    file_name = kwargs.get(name_key, f"text_{i}")
+                    # 清理文件名
+                    import re
+                    clean_file_name = re.sub(r'[<>:"/\\|?*]', '_', file_name)
+                    if not clean_file_name:
+                        clean_file_name = f"text_{i}"
+
+                    text_files.append({
+                        "content": text_content,
+                        "file_name": clean_file_name
+                    })
+
+        text_data = {"files": text_files}
 
         # 生成文本信息
-        text_info = f"收集了 {non_empty_count} 个文本字段"
-        if non_empty_count == 0:
-            text_info = "未收集到任何文本"
+        if text_files:
+            file_names = [f"{tf['file_name']}.txt" for tf in text_files]
+            text_info = f"收集了 {len(text_files)} 个文本文件: {', '.join(file_names)}"
+        else:
+            text_info = "未收集到任何文本内容"
 
         return (text_data, text_info)
 
@@ -190,44 +224,25 @@ class BatchImageSaverV2:
     @classmethod
     def INPUT_TYPES(s):
         return {
-            "required": {
-                # 统一文本输入（向后兼容）
-                "title": ("STRING", {
-                    "default": "",
-                    "multiline": False,
-                    "placeholder": "统一标题文本",
-                    "tooltip": "所有图片的统一标题（可选）"
-                }),
-                "description": ("STRING", {
-                    "default": "",
-                    "multiline": False,
-                    "placeholder": "统一描述文本",
-                    "tooltip": "所有图片的统一描述（可选）"
-                }),
-                "text_prompt": ("STRING", {
-                    "default": "",
-                    "multiline": False,
-                    "placeholder": "统一Prompt文本",
-                    "tooltip": "所有图片的统一Prompt（可选）"
-                }),
-            },
+            "required": {},
             "optional": {
                 # 多个图片批次输入（可以连接多个ImageCollector）
                 "batch_1": ("IMAGE_BATCH", {"forceInput": True}),
-                "text_batch_1": ("TEXT_BATCH", {"forceInput": True}),
                 "batch_2": ("IMAGE_BATCH", {"forceInput": True}),
-                "text_batch_2": ("TEXT_BATCH", {"forceInput": True}),
                 "batch_3": ("IMAGE_BATCH", {"forceInput": True}),
-                "text_batch_3": ("TEXT_BATCH", {"forceInput": True}),
                 "batch_4": ("IMAGE_BATCH", {"forceInput": True}),
-                "text_batch_4": ("TEXT_BATCH", {"forceInput": True}),
                 "batch_5": ("IMAGE_BATCH", {"forceInput": True}),
-                "text_batch_5": ("TEXT_BATCH", {"forceInput": True}),
                 "batch_6": ("IMAGE_BATCH", {"forceInput": True}),
-                "text_batch_6": ("TEXT_BATCH", {"forceInput": True}),
                 "batch_7": ("IMAGE_BATCH", {"forceInput": True}),
-                "text_batch_7": ("TEXT_BATCH", {"forceInput": True}),
                 "batch_8": ("IMAGE_BATCH", {"forceInput": True}),
+                # 多个文本批次输入（可以连接多个TextCollector）
+                "text_batch_1": ("TEXT_BATCH", {"forceInput": True}),
+                "text_batch_2": ("TEXT_BATCH", {"forceInput": True}),
+                "text_batch_3": ("TEXT_BATCH", {"forceInput": True}),
+                "text_batch_4": ("TEXT_BATCH", {"forceInput": True}),
+                "text_batch_5": ("TEXT_BATCH", {"forceInput": True}),
+                "text_batch_6": ("TEXT_BATCH", {"forceInput": True}),
+                "text_batch_7": ("TEXT_BATCH", {"forceInput": True}),
                 "text_batch_8": ("TEXT_BATCH", {"forceInput": True}),
                 # 输出设置
                 "output_folder": ("STRING", {
@@ -254,19 +269,16 @@ class BatchImageSaverV2:
     CATEGORY = "ComfyUI_Image_Anything"
     DESCRIPTION = "接收多个图片批次，统一保存到独立工作流文件夹"
 
-    def save_batches(self, title="", description="", text_prompt="", output_folder="batch_saves", enabled=True, prompt=None, extra_pnginfo=None, **kwargs):
+    def save_batches(self, output_folder="batch_saves", enabled=True, prompt=None, extra_pnginfo=None, **kwargs):
         """
         批量保存多个图片批次到独立文件夹
 
         Args:
-            title: 标题文本（来自上游节点）
-            description: 描述文本（来自上游节点）
-            text_prompt: Prompt文本（来自上游节点）
             output_folder: 输出文件夹名
             enabled: 是否启用此节点
             prompt: ComfyUI 提示词元数据（自动传入）
             extra_pnginfo: ComfyUI 额外信息（自动传入）
-            **kwargs: 包含batch_1, batch_2, ...的图片批次输入
+            **kwargs: 包含batch_1-8和text_batch_1-8的批次输入
         """
         # 检查是否启用
         if not enabled:
@@ -348,26 +360,17 @@ class BatchImageSaverV2:
         if not all_images:
             return ("No images to save",)
 
-        # 处理文本批次 - 优先使用文本批次，回退到统一文本
-        final_title = title
-        final_description = description
-        final_prompt = text_prompt
+        # 处理文本批次 - 收集多个文本文件
+        text_files = []  # 存储 {content: "...", file_name: "..."} 的列表
 
-        # 检查是否有文本批次（按顺序，第一个有效的优先）
+        # 按顺序检查每个文本批次
         for batch_idx in range(1, 9):
             text_batch_key = f"text_batch_{batch_idx}"
             if text_batch_key in kwargs and kwargs[text_batch_key] is not None:
                 text_batch = kwargs[text_batch_key]
-                if isinstance(text_batch, dict):
-                    # 使用文本批次中的内容（如果非空）
-                    if not final_title and text_batch.get("title"):
-                        final_title = text_batch["title"]
-                    if not final_description and text_batch.get("description"):
-                        final_description = text_batch["description"]
-                    if not final_prompt and text_batch.get("prompt"):
-                        final_prompt = text_batch["prompt"]
-                    # 找到第一个有效的就停止（保持简单逻辑）
-                    break
+                if isinstance(text_batch, dict) and "files" in text_batch:
+                    # 添加所有文本文件
+                    text_files.extend(text_batch["files"])
 
         # 保存元数据文件
         metadata = {
@@ -378,14 +381,6 @@ class BatchImageSaverV2:
             "total_images": len(all_images),
             "images": all_images
         }
-
-        # 添加文本内容到元数据中
-        if final_title:
-            metadata["title"] = final_title
-        if final_description:
-            metadata["description"] = final_description
-        if final_prompt:
-            metadata["prompt"] = final_prompt
 
         # 构建输出信息
         save_info_lines = [
@@ -407,19 +402,12 @@ class BatchImageSaverV2:
             for batch, count in sorted(batch_stats.items()):
                 save_info_lines.append(f"  批次{batch}: {count} 张图片")
 
-        # 添加文本信息
-        text_sections = []
-        if final_title:
-            text_sections.append(f"标题: {final_title}")
-        if final_description:
-            text_sections.append(f"描述: {final_description}")
-        if final_prompt:
-            text_sections.append(f"Prompt: {final_prompt}")
-
-        if text_sections:
+        # 添加文本文件信息
+        if text_files:
             save_info_lines.append("")
-            save_info_lines.append("文本信息:")
-            save_info_lines.extend(text_sections)
+            save_info_lines.append("文本文件:")
+            for text_file in text_files:
+                save_info_lines.append(f"  {text_file['file_name']}.txt")
 
         # 添加保存的图片列表
         save_info_lines.append("")
@@ -441,21 +429,11 @@ class BatchImageSaverV2:
         with open(metadata_path, 'w', encoding='utf-8') as f:
             json.dump(metadata, f, indent=2, ensure_ascii=False)
 
-        # 保存各个文本文件
-        if final_title:
-            title_path = os.path.join(batch_dir, "title.txt")
-            with open(title_path, 'w', encoding='utf-8') as f:
-                f.write(final_title)
-
-        if final_description:
-            description_path = os.path.join(batch_dir, "description.txt")
-            with open(description_path, 'w', encoding='utf-8') as f:
-                f.write(final_description)
-
-        if final_prompt:
-            prompt_path = os.path.join(batch_dir, "prompt.txt")
-            with open(prompt_path, 'w', encoding='utf-8') as f:
-                f.write(final_prompt)
+        # 保存文本文件
+        for text_file in text_files:
+            text_path = os.path.join(batch_dir, f"{text_file['file_name']}.txt")
+            with open(text_path, 'w', encoding='utf-8') as f:
+                f.write(text_file["content"])
 
         return (save_info,)
 
