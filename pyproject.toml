@@ -1,0 +1,21 @@
+[project]
+name = "ComfyUI-Image-Anything"
+description = "ComfyUI Image Anything lets you batch save images and text from different stages in a single workflow run, automatically organized into timestamped folders for easy review and batch processing."
+version = "1.0.0"
+license = {file = "LICENSE"}
+authors = [{name = "HuangYuChuh"}]
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/HuangYuChuh/ComfyUI_Image_Anything"
+Repository = "https://github.com/HuangYuChuh/ComfyUI_Image_Anything"
+
+[tool.comfy]
+PublisherId = "HuangYuChuh"
+DisplayName = "ComfyUI Image Anything"
+Icon = ""
