@@ -36,7 +36,7 @@ git clone https://github.com/HuangYuChuh/ComfyUI_Image_Anything.git
 - **batch_1, batch_2, ...** (必需): 连接 Image Batch 节点的输出
 - **text_batch_1, text_batch_2, ...** (可选): 连接 Text Batch 节点的输出
 
-### 原始版本参数 (Batch Image Saver V1)
+### 第一个版本参数 (Batch Image Saver V1)
 - **input_count** (必需): 图片数量（1-5）
 - **image_1** (必需): 第一张图片
 - **save_name_1** (必需): 第一张图片的保存名称（默认："image"）
@@ -85,7 +85,7 @@ git clone https://github.com/HuangYuChuh/ComfyUI_Image_Anything.git
 [文本B] → [Text Batch B] → text_batch_2 → /
 ```
 
-### 原始版本使用方法
+### 第一个版本使用方法
 1. 设置 **input_count** 为需要的图片数量 (1-5)
 2. 依次连接相应数量的图片到 `image_1` 到 `image_N`
 3. 设置对应的保存名称，如：`封面`、`细节`、`对比`、`局部`、`全图`
@@ -119,7 +119,7 @@ output/
 - `ComfyUI_Image_Anything` → `Text Batch`
 - `ComfyUI_Image_Anything` → `Batch Image Saver V2 (Dynamic)`
 
-**原始版本**:
+**第一个版本**:
 - `ComfyUI_Image_Anything` → `Batch Image Saver V1`
 
 ---
