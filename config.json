@@ -1,0 +1,15 @@
+{
+    "name": "ComfyUI_Image_Anything",
+    "description": "ComfyUI Image Anything lets you batch save images and text from different stages in a single workflow run, automatically organized into timestamped folders for easy review and batch processing.",
+    "author": "HuangYuChuh",
+    "version": "1.0.0",
+    "requirements": [],
+    "dependencies": [],
+    "files": [
+        "__init__.py",
+        "nodes/",
+        "web/"
+    ],
+    "tags": ["image", "batch", "save", "workflow"],
+    "license": "MIT"
+}
