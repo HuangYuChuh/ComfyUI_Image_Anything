@@ -3,15 +3,15 @@ from .nodes.batch_image_saver import BatchImageSaver, BatchImageSaverV2, ImageCo
 NODE_CLASS_MAPPINGS = {
     "BatchImageSaver": BatchImageSaver,        # 原始版本（向后兼容）
     "BatchImageSaverV2": BatchImageSaverV2,    # 新版本（模块化设计）
-    "ImageCollector": ImageCollector,          # 图片收集器子节点
-    "TextCollector": TextCollector,            # 文本收集器子节点
+    "ImageCollector": ImageCollector,          # 图片批次子节点
+    "TextCollector": TextCollector,            # 文本批次子节点
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "BatchImageSaver": "Dynamic Batch Image Saver (V1)",
-    "BatchImageSaverV2": "Dynamic Batch Image Saver (V2)",
-    "ImageCollector": "Image Collector",
-    "TextCollector": "Text Collector",
+    "BatchImageSaver": "Batch Image Saver V1",
+    "BatchImageSaverV2": "Batch Image Saver V2 (Dynamic)",
+    "ImageCollector": "image_batch",
+    "TextCollector": "text_batch",
 }
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']

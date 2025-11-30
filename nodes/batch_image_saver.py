@@ -8,7 +8,7 @@ from datetime import datetime
 
 class ImageCollector:
     """
-    图片收集器节点 - 用于收集一组图片及其保存名称
+    图片批次节点 - 用于收集一组图片及其保存名称
 
     功能：
     - 收集1-5张图片（可选输入）
@@ -99,7 +99,7 @@ class ImageCollector:
 
 class TextCollector:
     """
-    文本收集器节点 - 用于收集多个可自定义名称的文本内容
+    文本批次节点 - 用于收集多个可自定义名称的文本内容
 
     功能：
     - 支持5个文本输入（text_1 到 text_5），每个都是可选的
