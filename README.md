@@ -15,8 +15,8 @@ A powerful ComfyUI custom node for dynamic batch image saving with custom save n
 
 ### V2 新功能
 - ✅ **完全解耦架构**：图片和文本都可独立模块化
-- ✅ **ImageCollector子节点**：收集1-5张图片（可选输入）
-- ✅ **TextCollector子节点**：接收文件内容（file_content + file_name）
+- ✅ **Image Batch子节点**：收集1-5张图片（可选输入）
+- ✅ **Text Batch子节点**：接收文件内容（file_content + file_name）
 - ✅ **BatchImageSaverV2主节点**：接收多个图片+文本批次，统一保存
 - ✅ **无限扩展**：通过复制子节点支持任意数量图片和文本文件
 - ✅ **智能重新编号**：全局统一编号，保持顺序
@@ -26,14 +26,14 @@ A powerful ComfyUI custom node for dynamic batch image saving with custom save n
 ## ✨ Key Features / 主要功能
 
 ### V2 模块化版本
-- ✅ **完全解耦**：ImageCollector + TextCollector + BatchImageSaverV2
+- ✅ **完全解耦**：Image Batch + Text Batch + BatchImageSaverV2
 - ✅ **可选输入**：图片和文本子节点都支持可选输入
 - ✅ **多批次支持**：主节点可接收多个图片+文本批次
 - ✅ **灵活配对**：每个图片批次可配对对应的文本批次
-- ✅ **5字段文本**：TextCollector支持5个通用文本字段（text_1到text_5）
+- ✅ **5字段文本**：Text Batch支持5个通用文本字段（text_1到text_5）
 - ✅ **动态扩展**：需要更多内容只需复制相应子节点
 - ✅ **统一编号**：自动重新编号，保持全局顺序
-- ✅ **简洁设计**：主节点移除统一文本输入，完全依赖TextCollector
+- ✅ **简洁设计**：主节点移除统一文本输入，完全依赖Text Batch
 
 ### 原始版本功能
 - ✅ **动态输入**：支持 1-10 张图片的动态输入
@@ -134,16 +134,16 @@ output/
 #### 扩展示例（15张图片）
 
 ```
-[图片1-5] → [ImageCollector A] → batch_1 → \
-[图片6-10] → [ImageCollector B] → batch_2 → → [BatchImageSaverV2] → 保存
-[图片11-15] → [ImageCollector C] → batch_3 → /
+[图片1-5] → [Image Batch A] → batch_1 → \
+[图片6-10] → [Image Batch B] → batch_2 → → [BatchImageSaverV2] → 保存
+[图片11-15] → [Image Batch C] → batch_3 → /
 ```
 
 #### 灵活组合（7张图片）
 
 ```
-[图片1-5] → [ImageCollector A] → batch_1 → \
-[图片6-7] → [ImageCollector B] → batch_2 → → [BatchImageSaverV2] → 保存
+[图片1-5] → [Image Batch A] → batch_1 → \
+[图片6-7] → [Image Batch B] → batch_2 → → [BatchImageSaverV2] → 保存
 ```
 
 ### 原始版本使用方法
