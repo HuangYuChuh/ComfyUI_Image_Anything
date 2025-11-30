@@ -14,38 +14,38 @@ A powerful ComfyUI custom node for dynamic batch image saving with custom save n
 **2025年11月更新**：新增模块化设计，支持更灵活的图片收集和保存！
 
 ### V2 新功能
-- ✅ **完全解耦架构**：图片和文本都可独立模块化
-- ✅ **Image Batch子节点**：收集1-5张图片（可选输入）
-- ✅ **Text Batch子节点**：接收文件内容（file_content + file_name）
-- ✅ **BatchImageSaverV2主节点**：接收多个图片+文本批次，统一保存
-- ✅ **无限扩展**：通过复制子节点支持任意数量图片和文本文件
-- ✅ **智能重新编号**：全局统一编号，保持顺序
-- ✅ **灵活组合**：每个图片批次可配对对应的文本批次
-- ✅ **向后兼容**：保留原始版本供选择使用
+- **完全解耦架构**：图片和文本都可独立模块化
+- **Image Batch子节点**：收集1-5张图片（可选输入）
+- **Text Batch子节点**：接收文件内容（file_content + file_name）
+- **BatchImageSaverV2主节点**：接收多个图片+文本批次，统一保存
+- **无限扩展**：通过复制子节点支持任意数量图片和文本文件
+- **智能重新编号**：全局统一编号，保持顺序
+- **灵活组合**：每个图片批次可配对对应的文本批次
+- **向后兼容**：保留原始版本供选择使用
 
-## ✨ Key Features / 主要功能
+## Key Features / 主要功能
 
 ### V2 模块化版本
-- ✅ **完全解耦**：Image Batch + Text Batch + BatchImageSaverV2
-- ✅ **可选输入**：图片和文本子节点都支持可选输入
-- ✅ **多批次支持**：主节点可接收多个图片+文本批次
-- ✅ **灵活配对**：每个图片批次可配对对应的文本批次
-- ✅ **5字段文本**：Text Batch支持5个通用文本字段（text_1到text_5）
-- ✅ **动态扩展**：需要更多内容只需复制相应子节点
-- ✅ **统一编号**：自动重新编号，保持全局顺序
-- ✅ **简洁设计**：主节点移除统一文本输入，完全依赖Text Batch
+- **完全解耦**：Image Batch + Text Batch + BatchImageSaverV2
+- **可选输入**：图片和文本子节点都支持可选输入
+- **多批次支持**：主节点可接收多个图片+文本批次
+- **灵活配对**：每个图片批次可配对对应的文本批次
+- **5字段文本**：Text Batch支持5个通用文本字段（text_1到text_5）
+- **动态扩展**：需要更多内容只需复制相应子节点
+- **统一编号**：自动重新编号，保持全局顺序
+- **简洁设计**：主节点移除统一文本输入，完全依赖Text Batch
 
 ### 原始版本功能
-- ✅ **动态输入**：支持 1-10 张图片的动态输入
-- ✅ **独立保存名称**：每张图片可以设置单独的保存名称
-- ✅ **文本描述**：可输入关于图片的描述信息，保存到文件
-- ✅ **Prompt 保存**：自动保存 ComfyUI 的 Prompt 文本到独立文件
-- ✅ **文本保存**：输出文本信息同时保存到 save_info.txt 文件
-- ✅ **自动分组**：每次运行自动创建时间戳文件夹
-- ✅ **详细文本输出**：输出包含所有图片信息的文本
-- ✅ **JSON 元数据**：自动保存完整的元数据信息
-- ✅ **灵活路径**：支持自定义输出文件夹路径
-- ✅ **启用控制**：可通过 enabled 参数控制节点是否启用
+- **动态输入**：支持 1-10 张图片的动态输入
+- **独立保存名称**：每张图片可以设置单独的保存名称
+- **文本描述**：可输入关于图片的描述信息，保存到文件
+- **Prompt 保存**：自动保存 ComfyUI 的 Prompt 文本到独立文件
+- **文本保存**：输出文本信息同时保存到 save_info.txt 文件
+- **自动分组**：每次运行自动创建时间戳文件夹
+- **详细文本输出**：输出包含所有图片信息的文本
+- **JSON 元数据**：自动保存完整的元数据信息
+- **灵活路径**：支持自定义输出文件夹路径
+- **启用控制**：可通过 enabled 参数控制节点是否启用
 
 ## 节点参数
 
@@ -226,7 +226,7 @@ blurry, low quality, distorted
 }
 ```
 
-## 🚀 Installation / 安装方法
+## Installation / 安装方法
 
 ### Method 1: Clone Repository / 方式一：克隆仓库
 ```bash
@@ -304,7 +304,7 @@ After installation, find the node in / 安装后，在节点列表中查找：
 - 未连接的图片输入会被自动跳过
 - 通过 enabled 参数可控制节点是否执行保存操作
 
-## 🤝 Contributing / 贡献
+## Contributing / 贡献
 
 Contributions are welcome! Please feel free to submit a Pull Request. / 欢迎贡献！请随时提交拉取请求。
 
@@ -315,18 +315,18 @@ Contributions are welcome! Please feel free to submit a Pull Request. / 欢迎�
 4. Push to the branch / 推送到分支
 5. Open a Pull Request / 打开拉取请求
 
-## 📜 License / 许可证
+## License / 许可证
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. / 本项目采用 MIT 许可证 - 查看许可证文件了解详情。
 
-## ⭐ Show Your Support / 支持我们
+## Show Your Support / 支持我们
 
 If you find this project helpful, please consider:
-- ⭐ Starring the repository / 为仓库点星
-- 🐛 Reporting issues / 报告问题
-- 💡 Suggesting features / 建议功能
-- 🤝 Contributing to the code / 贡献代码
+- Starring the repository / 为仓库点星
+- Reporting issues / 报告问题
+- Suggesting features / 建议功能
+- Contributing to the code / 贡献代码
 
 ---
 
-**Made with ❤️ for the ComfyUI Community / 为 ComfyUI 社区精心制作**
+**Made with love for the ComfyUI Community / 为 ComfyUI 社区精心制作**
