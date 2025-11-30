@@ -209,11 +209,12 @@ class TextCollector:
 
 class BatchImageSaverV2:
     """
-    重构的批量图片保存节点 - 接收多个图片批次输入
+    重构的批量图片保存节点 - 支持真正的动态输入
 
     功能：
-    - 接收多个ImageCollector的输出
-    - 动态汇总所有图片
+    - 支持动态添加/移除图片批次输入
+    - 支持动态添加/移除文本批次输入
+    - 前端JavaScript管理动态端口
     - 统一保存到时间戳文件夹
     """
 
@@ -223,27 +224,11 @@ class BatchImageSaverV2:
 
     @classmethod
     def INPUT_TYPES(s):
-        return {
-            "required": {},
+        inputs = {
+            "required": {
+                # 移除了固定的 input_count，改为真正的动态输入
+            },
             "optional": {
-                # 多个图片批次输入（可以连接多个ImageCollector）
-                "batch_1": ("IMAGE_BATCH", {"forceInput": True}),
-                "batch_2": ("IMAGE_BATCH", {"forceInput": True}),
-                "batch_3": ("IMAGE_BATCH", {"forceInput": True}),
-                "batch_4": ("IMAGE_BATCH", {"forceInput": True}),
-                "batch_5": ("IMAGE_BATCH", {"forceInput": True}),
-                "batch_6": ("IMAGE_BATCH", {"forceInput": True}),
-                "batch_7": ("IMAGE_BATCH", {"forceInput": True}),
-                "batch_8": ("IMAGE_BATCH", {"forceInput": True}),
-                # 多个文本批次输入（可以连接多个TextCollector）
-                "text_batch_1": ("TEXT_BATCH", {"forceInput": True}),
-                "text_batch_2": ("TEXT_BATCH", {"forceInput": True}),
-                "text_batch_3": ("TEXT_BATCH", {"forceInput": True}),
-                "text_batch_4": ("TEXT_BATCH", {"forceInput": True}),
-                "text_batch_5": ("TEXT_BATCH", {"forceInput": True}),
-                "text_batch_6": ("TEXT_BATCH", {"forceInput": True}),
-                "text_batch_7": ("TEXT_BATCH", {"forceInput": True}),
-                "text_batch_8": ("TEXT_BATCH", {"forceInput": True}),
                 # 输出设置
                 "output_folder": ("STRING", {
                     "default": "batch_saves",
@@ -255,6 +240,9 @@ class BatchImageSaverV2:
                     "label_off": "Disabled",
                     "tooltip": "启用或禁用此节点"
                 }),
+                # 初始各定义一个输入端口，其余由前端动态添加
+                "image_batch_1": ("IMAGE_BATCH", {"forceInput": True}),
+                "text_batch_1": ("TEXT_BATCH", {"forceInput": True}),
             },
             "hidden": {
                 "prompt": "PROMPT",
@@ -262,23 +250,25 @@ class BatchImageSaverV2:
             },
         }
 
+        return inputs
+
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("save_info",)
     FUNCTION = "save_batches"
     OUTPUT_NODE = True
     CATEGORY = "ComfyUI_Image_Anything"
-    DESCRIPTION = "接收多个图片批次，统一保存到独立工作流文件夹"
+    DESCRIPTION = "支持动态输入的批量图片保存节点"
 
     def save_batches(self, output_folder="batch_saves", enabled=True, prompt=None, extra_pnginfo=None, **kwargs):
         """
-        批量保存多个图片批次到独立文件夹
+        批量保存多个图片批次到独立文件夹 - 支持真正的动态输入
 
         Args:
             output_folder: 输出文件夹名
             enabled: 是否启用此节点
             prompt: ComfyUI 提示词元数据（自动传入）
             extra_pnginfo: ComfyUI 额外信息（自动传入）
-            **kwargs: 包含batch_1-8和text_batch_1-8的批次输入
+            **kwargs: 动态包含image_batch_1-N和text_batch_1-N的批次输入
         """
         # 检查是否启用
         if not enabled:
@@ -312,65 +302,65 @@ class BatchImageSaverV2:
         saved_files = []
         global_index = 1
 
-        # 处理所有连接的批次
-        for batch_idx in range(1, 9):  # 最多支持8个批次
-            batch_key = f"batch_{batch_idx}"
+        # 动态处理所有图片批次输入
+        image_batch_count = 0
+        for key, value in kwargs.items():
+            if key.startswith("image_batch_") and value is not None:
+                batch_data = value
 
-            # 检查批次输入是否存在
-            if batch_key not in kwargs or kwargs[batch_key] is None:
-                continue
+                # 验证批次数据格式
+                if not isinstance(batch_data, dict) or "images" not in batch_data:
+                    continue
 
-            batch_data = kwargs[batch_key]
+                batch_images = batch_data["images"]
+                batch_idx = int(key.replace("image_batch_", ""))
 
-            # 验证批次数据格式
-            if not isinstance(batch_data, dict) or "images" not in batch_data:
-                continue
+                # 处理批次中的每张图片（重新编号）
+                for img_data in batch_images:
+                    img = img_data["image"]
+                    save_name = img_data["save_name"]
+                    original_index = img_data["original_index"]
 
-            batch_images = batch_data["images"]
+                    # 清理保存名称
+                    clean_save_name = save_name.replace('/', '_').replace('\\', '_')
 
-            # 处理批次中的每张图片（重新编号）
-            for img_data in batch_images:
-                img = img_data["image"]
-                save_name = img_data["save_name"]
-                original_index = img_data["original_index"]
+                    # 生成新文件名（全局编号）
+                    filename = f"{clean_save_name}_{global_index:02d}.png"
+                    filepath = os.path.join(batch_dir, filename)
 
-                # 清理保存名称
-                clean_save_name = save_name.replace('/', '_').replace('\\', '_')
+                    # 保存图片
+                    img.save(filepath)
 
-                # 生成新文件名（全局编号）
-                filename = f"{clean_save_name}_{global_index:02d}.png"
-                filepath = os.path.join(batch_dir, filename)
+                    # 记录信息
+                    all_images.append({
+                        "global_index": global_index,
+                        "save_name": save_name,
+                        "filename": filename,
+                        "filepath": filepath,
+                        "source_batch": batch_idx,
+                        "source_index": original_index
+                    })
+                    saved_files.append(filepath)
+                    global_index += 1
 
-                # 保存图片
-                img.save(filepath)
-
-                # 记录信息
-                all_images.append({
-                    "global_index": global_index,
-                    "save_name": save_name,
-                    "filename": filename,
-                    "filepath": filepath,
-                    "source_batch": batch_idx,
-                    "source_index": original_index
-                })
-                saved_files.append(filepath)
-                global_index += 1
+                image_batch_count += 1
 
         # 如果没有保存任何图片，返回提示信息
         if not all_images:
             return ("No images to save",)
 
-        # 处理文本批次 - 收集多个文本文件
+        # 处理文本批次 - 动态收集所有文本文件
         text_files = []  # 存储 {content: "...", file_name: "..."} 的列表
+        text_batch_count = 0
 
-        # 按顺序检查每个文本批次
-        for batch_idx in range(1, 9):
-            text_batch_key = f"text_batch_{batch_idx}"
-            if text_batch_key in kwargs and kwargs[text_batch_key] is not None:
-                text_batch = kwargs[text_batch_key]
+        # 动态处理所有文本批次输入
+        for key, value in kwargs.items():
+            if key.startswith("text_batch_") and value is not None:
+                text_batch = value
                 if isinstance(text_batch, dict) and "files" in text_batch:
                     # 添加所有文本文件
                     text_files.extend(text_batch["files"])
+                    text_batch_count += 1
 
         # 保存元数据文件
         metadata = {
@@ -388,19 +378,21 @@ class BatchImageSaverV2:
             f"时间戳: {timestamp}",
             f"输出目录: {batch_dir}",
             f"图片总数: {len(all_images)}",
+            f"图片批次数: {image_batch_count}",
+            f"文本批次数: {text_batch_count}",
         ]
 
-        # 按批次显示统计
+        # 按批次显示统计（基于实际的批次索引）
         batch_stats = {}
         for img in all_images:
             batch = img["source_batch"]
             batch_stats[batch] = batch_stats.get(batch, 0) + 1
 
-        if len(batch_stats) > 1:
+        if len(batch_stats) > 0:
             save_info_lines.append("")
             save_info_lines.append("批次统计:")
             for batch, count in sorted(batch_stats.items()):
-                save_info_lines.append(f"  批次{batch}: {count} 张图片")
+                save_info_lines.append(f"  图片批次{batch}: {count} 张图片")
 
         # 添加文本文件信息
         if text_files:
