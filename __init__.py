@@ -2,7 +2,7 @@ from .nodes.batch_image_saver import BatchImageSaver, BatchImageSaverV2, ImageCo
 
 NODE_CLASS_MAPPINGS = {
     "BatchImageSaver": BatchImageSaver,        # 原始版本（向后兼容）
-    "BatchImageSaverV2": BatchImageSaverV2,    # 新版本（模块化设计）
+    "BatchImageSaverV2": BatchImageSaverV2,    # 新版本（真正的动态输入）
     "ImageCollector": ImageCollector,          # 图片批次子节点
     "TextCollector": TextCollector,            # 文本批次子节点
 }
@@ -14,4 +14,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "TextCollector": "text_batch",
 }
 
-__all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
+# Web 目录路径，用于加载前端JavaScript
+WEB_DIRECTORY = "./web"
+
+__all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS', 'WEB_DIRECTORY']
