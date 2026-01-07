@@ -36,6 +36,24 @@ git clone https://github.com/HuangYuChuh/ComfyUI_Image_Anything.git
 - **batch_1, batch_2, ...** (必需): 连接 Image Batch 节点的输出
 - **text_batch_1, text_batch_2, ...** (可选): 连接 Text Batch 节点的输出
 
+#### Edit Dataset Nodes (`Edit_Image`)
+**EditDatasetLoader**:
+- **directory** (必需): 图片文件夹路径
+- **start_index** (必需): 起始索引（默认：0）
+- **auto_next** (可选): 自动递增索引（默认：True），关闭后固定读取 start_index
+- **reset_iterator** (可选):强制重置索引到 start_index（默认：False）
+
+**EditDatasetSaver**:
+- **output_root** (必需): 保存根目录
+- **naming_style** (必需): 
+    - `Keep Original`: 保持原文件名
+    - `Rename (Prefix + Index)`: 使用前缀+自动序号
+- **filename_prefix**: 重命名时的前缀（默认："AnyBG"）
+- **index**: 重命名时的起始序号（默认：0，会自动跳过已存在文件）
+- **filename_stem**: 原始文件名（可选，连接 Loader 的输出）
+- **save_image_control/target**: 输入图片（可选）
+- **save_caption**: 输入文本标题（可选）
+
 ### 第一个版本参数 (Batch Image Saver V1)
 - **input_count** (必需): 图片数量（1-5）
 - **image_1** (必需): 第一张图片
@@ -85,6 +103,19 @@ git clone https://github.com/HuangYuChuh/ComfyUI_Image_Anything.git
 [文本B] → [Text Batch B] → text_batch_2 → /
 ```
 
+#### 自动标注数据集流程 (`Edit Dataset Workflow`)
+这是一个专门用于构建和标注图像数据集的流程：
+1. **加载图片**：使用 `EditDatasetLoader` 指向你的图片文件夹。
+2. **处理流程**：在中间连接任意的处理节点（如图像反推提示词、抠图、风格迁移等）。
+3. **保存结果**：连接 `EditDatasetSaver`。
+   - **Output Root**: 设置保存结果的根目录。
+   - **Naming Style**: 
+     - 想要保持文件名不变？选 `Keep Original` 并连接 loader 的 `filename_stem`。
+     - 想要统一重命名？选 `Rename (Prefix + Index)` 并设置前缀（如 `AnyBG`）。
+   - **Auto Increment**: 即使中断重启，"Rename" 模式也会自动检测已有文件，从下一个序号开始保存，**不会覆盖旧数据**。
+
+> **提示**: 如果想重置索引从头开始，请在 Loader 中开启 `reset_iterator` 运行一次。
+
 ### 第一个版本使用方法
 1. 设置 **input_count** 为需要的图片数量 (1-5)
 2. 依次连接相应数量的图片到 `image_1` 到 `image_N`
@@ -118,6 +149,10 @@ output/
 - `ComfyUI_Image_Anything` → `Image Batch`
 - `ComfyUI_Image_Anything` → `Text Batch`
 - `ComfyUI_Image_Anything` → `Batch Image Saver V2 (Dynamic)`
+
+**自动标注数据集 (`Edit_Image`)**:
+- `ComfyUI_Image_Anything` → `Edit_Image` → `EditDatasetLoader`
+- `ComfyUI_Image_Anything` → `Edit_Image` → `EditDatasetSaver`
 
 **第一个版本**:
 - `ComfyUI_Image_Anything` → `Batch Image Saver V1`
