@@ -2,6 +2,12 @@ import os
 import torch
 import numpy as np
 from PIL import Image, ImageOps
+import signal
+import sys
+
+def interrupt_handler(signum, frame):
+    print("Process interrupted")
+    sys.exit(0)
 
 # Global counter to track iteration progress per directory
 _LOADER_COUNTERS = {}
@@ -73,7 +79,9 @@ class EditDatasetLoader:
             final_index = _LOADER_COUNTERS[key]
 
         if final_index >= len(files):
-            print(f"EditDatasetLoader: Index {final_index} out of range (Total: {len(files)}). Stopping.")
+            print(f"EditDatasetLoader: Index {final_index} out of range (Total: {len(files)}). Stopping workflow.")
+            signal.signal(signal.SIGINT, interrupt_handler)
+            signal.raise_signal(signal.SIGINT)
             return (self._empty_image(), "")
 
         # Get Image
