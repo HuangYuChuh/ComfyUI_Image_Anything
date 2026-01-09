@@ -122,6 +122,16 @@ git clone https://github.com/HuangYuChuh/ComfyUI_Image_Anything.git
 
 > **提示**: 如果想重置索引从头开始，请在 Loader 中开启 `reset_iterator` 运行一次。
 
+#### 高级技巧：重跑失败图片
+当发现某些图片（如索引 5, 12, 23）处理失败时，无需重跑整个数据集：
+1. **Loader 设置**：
+   - `index_list`: 填入 `"5,12,23"`。
+   - `reset_iterator`: 开启（确保从列表第一个开始）。
+2. **Saver 设置**：
+   - `allow_overwrite`: 开启 `True`（允许覆盖旧的错误结果）。
+3. **运行**：节点只处理这 3 张图片，完成后自动停止。
+
+
 ### 第一个版本使用方法
 1. 设置 **input_count** 为需要的图片数量 (1-5)
 2. 依次连接相应数量的图片到 `image_1` 到 `image_N`
