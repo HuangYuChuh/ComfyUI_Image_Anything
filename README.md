@@ -36,7 +36,9 @@ git clone https://github.com/HuangYuChuh/ComfyUI_Image_Anything.git
 - **batch_1, batch_2, ...** (必需): 连接 Image Batch 节点的输出
 - **text_batch_1, text_batch_2, ...** (可选): 连接 Text Batch 节点的输出
 
-#### Edit Dataset Nodes (`Edit_Image`)
+### 自动数据集标注节点参数 (`Edit_Image`)
+这些是专为自动化制作模型数据集（如 Qwen Edit、Kontext 等）设计的新节点。
+
 **EditDatasetLoader**:
 - **directory** (必需): 图片文件夹路径
 - **start_index** (必需): 起始索引（默认：0）
