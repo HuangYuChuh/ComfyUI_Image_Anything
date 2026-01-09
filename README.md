@@ -54,6 +54,7 @@ git clone https://github.com/HuangYuChuh/ComfyUI_Image_Anything.git
     - `Rename (Prefix + Index)`: 使用前缀+自动序号
 - **filename_prefix**: 重命名时的前缀（默认："AnyBG"）
 - **index**: 重命名时的起始序号（默认：0，会自动跳过已存在文件）
+- **allow_overwrite** (新增): 是否允许覆盖已有文件。开启后配合 `index_list` 使用，可自动覆盖错误的数据对。
 - **filename_stem**: 原始文件名（可选，连接 Loader 的输出）
 - **save_image_control/target**: 输入图片（可选）
 - **save_caption**: 输入文本标题（可选）

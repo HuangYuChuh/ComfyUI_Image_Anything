@@ -184,6 +184,7 @@ class EditDatasetSaver:
                 "naming_style": (["Keep Original", "Rename (Prefix + Index)"],),
                 "filename_prefix": ("STRING", {"default": "AnyBG"}),
                 "index": ("INT", {"default": 0, "min": 0, "max": 999999}),
+                "allow_overwrite": ("BOOLEAN", {"default": False, "label_on": "Overwrite", "label_off": "Skip Existing"}),
             },
             "optional": {
                 "filename_stem": ("STRING", {"default": "", "forceInput": True}),
@@ -199,7 +200,7 @@ class EditDatasetSaver:
     FUNCTION = "save_dataset"
     CATEGORY = "ComfyUI_Image_Anything/Edit_Image"
 
-    def save_dataset(self, output_root, naming_style, filename_prefix, index,
+    def save_dataset(self, output_root, naming_style, filename_prefix, index, allow_overwrite,
                      filename_stem="", save_image_control=None, save_image_target=None, save_caption=None,
                      save_format="jpg"):
 
@@ -215,37 +216,42 @@ class EditDatasetSaver:
 
         # Determine filename
         if naming_style == "Rename (Prefix + Index)":
-            global _SAVER_COUNTERS
-            key = f"{output_root}_{filename_prefix}"
-            
-            if key not in _SAVER_COUNTERS:
-                max_idx = -1
-                # Scan directories to find max index
-                dirs_to_check = [control_dir, target_dir]
-                for d in dirs_to_check:
-                    if os.path.exists(d):
-                        for f in os.listdir(d):
-                            if f.startswith(filename_prefix):
-                                # expect format: prefix_00000.ext
-                                try:
-                                    # strip extension
-                                    base = os.path.splitext(f)[0]
-                                    # strip prefix
-                                    remain = base[len(filename_prefix):]
-                                    if remain.startswith('_') and remain[1:].isdigit():
-                                        idx = int(remain[1:])
-                                        if idx > max_idx:
-                                            max_idx = idx
-                                except:
-                                    continue
-                _SAVER_COUNTERS[key] = max_idx + 1
-            
-            # Use the greater of global counter or user input
-            current_idx = max(_SAVER_COUNTERS[key], index)
-            final_name = f"{filename_prefix}_{current_idx:04d}"
-            
-            # Update global counter
-            _SAVER_COUNTERS[key] = current_idx + 1
+            if allow_overwrite:
+                # Overwrite mode: use provided index directly
+                final_name = f"{filename_prefix}_{index:04d}"
+            else:
+                # Normal mode: scan for max index and auto-increment
+                global _SAVER_COUNTERS
+                key = f"{output_root}_{filename_prefix}"
+                
+                if key not in _SAVER_COUNTERS:
+                    max_idx = -1
+                    # Scan directories to find max index
+                    dirs_to_check = [control_dir, target_dir]
+                    for d in dirs_to_check:
+                        if os.path.exists(d):
+                            for f in os.listdir(d):
+                                if f.startswith(filename_prefix):
+                                    # expect format: prefix_00000.ext
+                                    try:
+                                        # strip extension
+                                        base = os.path.splitext(f)[0]
+                                        # strip prefix
+                                        remain = base[len(filename_prefix):]
+                                        if remain.startswith('_') and remain[1:].isdigit():
+                                            idx = int(remain[1:])
+                                            if idx > max_idx:
+                                                max_idx = idx
+                                    except:
+                                        continue
+                    _SAVER_COUNTERS[key] = max_idx + 1
+                
+                # Use the greater of global counter or user input
+                current_idx = max(_SAVER_COUNTERS[key], index)
+                final_name = f"{filename_prefix}_{current_idx:04d}"
+                
+                # Update global counter
+                _SAVER_COUNTERS[key] = current_idx + 1
 
         else:
             final_name = filename_stem if filename_stem else f"unknown_{index}"
