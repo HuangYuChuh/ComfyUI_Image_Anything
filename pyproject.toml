@@ -1,6 +1,6 @@
 [project]
 name = "ComfyUI-Image-Anything"
-description = "ComfyUI Image Anything lets you batch save images and text from different stages in a single workflow run, automatically organized into timestamped folders for easy review and batch processing."
+description = "Batch save workflow outputs with organized folders, and automate dataset creation for image editing models (Qwen Edit, Kontext). Features auto-iteration, structured saving, and failed image re-processing."
 version = "1.0.0"
 license = {file = "LICENSE"}
 authors = [{name = "HuangYuChuh"}]
