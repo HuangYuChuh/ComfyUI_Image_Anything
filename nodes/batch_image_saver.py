@@ -42,7 +42,7 @@ class ImageCollector:
     RETURN_NAMES = ("image_batch", "batch_info")
     FUNCTION = "collect_images"
     OUTPUT_NODE = False
-    CATEGORY = "ComfyUI_Image_Anything"
+    CATEGORY = "ComfyUI_Image_Anything/Batch_Save"
     DESCRIPTION = "收集1-5张图片及其保存名称，打包输出给主节点"
 
     def collect_images(self, **kwargs):
@@ -159,7 +159,7 @@ class TextCollector:
     RETURN_NAMES = ("text_batch", "text_info")
     FUNCTION = "collect_text"
     OUTPUT_NODE = False
-    CATEGORY = "ComfyUI_Image_Anything"
+    CATEGORY = "ComfyUI_Image_Anything/Batch_Save"
     DESCRIPTION = "收集多个可自定义名称的文本内容，打包输出给主节点"
 
     def collect_text(self, **kwargs):
@@ -256,7 +256,7 @@ class BatchImageSaverV2:
     RETURN_NAMES = ("save_info",)
     FUNCTION = "save_batches"
     OUTPUT_NODE = True
-    CATEGORY = "ComfyUI_Image_Anything"
+    CATEGORY = "ComfyUI_Image_Anything/Batch_Save"
     DESCRIPTION = "支持动态输入的批量图片保存节点"
 
     def save_batches(self, output_folder="batch_saves", enabled=True, prompt=None, extra_pnginfo=None, **kwargs):
@@ -516,7 +516,7 @@ class BatchImageSaver:
     RETURN_NAMES = ("save_info",)
     FUNCTION = "save_batch"
     OUTPUT_NODE = True
-    CATEGORY = "ComfyUI_Image_Anything"
+    CATEGORY = "ComfyUI_Image_Anything/Batch_Save"
     DESCRIPTION = "动态批量保存多张图片到独立工作流文件夹并输出文本信息"
 
     def save_batch(self, image_1, title="", description="", text_prompt="", save_name_1="image", output_folder="batch_saves", enabled=True, prompt=None, extra_pnginfo=None, **kwargs):
