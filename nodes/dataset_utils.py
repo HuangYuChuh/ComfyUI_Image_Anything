@@ -33,6 +33,9 @@ class EditDatasetLoader:
                 "start_index": ("INT", {"default": 0, "min": 0, "max": 999999, "step": 1}),
                 "auto_next": ("BOOLEAN", {"default": True, "label_on": "Auto Next", "label_off": "Fixed Index"}),
                 "reset_iterator": ("BOOLEAN", {"default": False, "label_on": "Reset Index", "label_off": "Continue"}),
+            },
+            "optional": {
+                "index_list": ("STRING", {"default": "", "multiline": False, "tooltip": "Comma-separated indices to process, e.g. '5,12,23'. Leave empty for sequential mode."}),
             }
         }
 
@@ -42,14 +45,14 @@ class EditDatasetLoader:
     CATEGORY = "ComfyUI_Image_Anything/Edit_Image"
 
     @classmethod
-    def IS_CHANGED(s, directory, start_index, auto_next, reset_iterator, **kwargs):
+    def IS_CHANGED(s, directory, start_index, auto_next, reset_iterator, index_list="", **kwargs):
         if reset_iterator:
             return float("NaN")
         if not auto_next:
             return float("nan")
         return float("NaN")
 
-    def load_data(self, directory, start_index, auto_next, reset_iterator):
+    def load_data(self, directory, start_index, auto_next, reset_iterator, index_list=""):
         global _LOADER_COUNTERS
         
         if not os.path.exists(directory):
@@ -67,22 +70,58 @@ class EditDatasetLoader:
             print(f"EditDatasetLoader: No images found in {directory}")
             return (self._empty_image(), "")
 
-        # Manage counter
-        key = directory
+        # Parse index_list if provided
+        target_indices = None
+        if index_list and index_list.strip():
+            try:
+                target_indices = [int(x.strip()) for x in index_list.split(",") if x.strip().isdigit()]
+                if target_indices:
+                    print(f"EditDatasetLoader: Index list mode - processing indices: {target_indices}")
+            except ValueError:
+                print(f"EditDatasetLoader: Invalid index_list format '{index_list}', falling back to sequential mode")
+                target_indices = None
+
+        # Determine counter key
+        if target_indices:
+            key = f"{directory}_list_{index_list}"
+        else:
+            key = directory
+
+        # Reset or initialize counter
         if reset_iterator or key not in _LOADER_COUNTERS:
-            _LOADER_COUNTERS[key] = start_index
+            _LOADER_COUNTERS[key] = 0 if target_indices else start_index
             if reset_iterator:
-                 print(f"EditDatasetLoader: Iterator reset to {start_index} for {directory}")
+                print(f"EditDatasetLoader: Iterator reset for {directory}")
 
-        final_index = start_index
-        if auto_next:
-            final_index = _LOADER_COUNTERS[key]
+        # Determine which index to load
+        if target_indices:
+            # Index list mode: iterate through specified indices
+            list_position = _LOADER_COUNTERS[key]
+            
+            if list_position >= len(target_indices):
+                print(f"EditDatasetLoader: All {len(target_indices)} specified indices processed. Stopping workflow.")
+                signal.signal(signal.SIGINT, interrupt_handler)
+                signal.raise_signal(signal.SIGINT)
+                return (self._empty_image(), "")
+            
+            final_index = target_indices[list_position]
+            
+            if final_index >= len(files):
+                print(f"EditDatasetLoader: Index {final_index} out of range (Total: {len(files)}). Skipping.")
+                if auto_next:
+                    _LOADER_COUNTERS[key] += 1
+                return (self._empty_image(), "")
+        else:
+            # Sequential mode: original behavior
+            final_index = start_index
+            if auto_next:
+                final_index = _LOADER_COUNTERS[key]
 
-        if final_index >= len(files):
-            print(f"EditDatasetLoader: Index {final_index} out of range (Total: {len(files)}). Stopping workflow.")
-            signal.signal(signal.SIGINT, interrupt_handler)
-            signal.raise_signal(signal.SIGINT)
-            return (self._empty_image(), "")
+            if final_index >= len(files):
+                print(f"EditDatasetLoader: Index {final_index} out of range (Total: {len(files)}). Stopping workflow.")
+                signal.signal(signal.SIGINT, interrupt_handler)
+                signal.raise_signal(signal.SIGINT)
+                return (self._empty_image(), "")
 
         # Get Image
         filename = files[final_index]
@@ -92,7 +131,11 @@ class EditDatasetLoader:
         # Update counter
         if auto_next:
             _LOADER_COUNTERS[key] += 1
-            print(f"EditDatasetLoader: Processed {current_stem} ({final_index}). Next: {final_index + 1}")
+            if target_indices:
+                remaining = len(target_indices) - _LOADER_COUNTERS[key]
+                print(f"EditDatasetLoader: Processed {current_stem} (index {final_index}). Remaining: {remaining}")
+            else:
+                print(f"EditDatasetLoader: Processed {current_stem} ({final_index}). Next: {final_index + 1}")
 
         # Load image
         tensor = self._load_img(image_path)

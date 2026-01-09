@@ -43,8 +43,9 @@ git clone https://github.com/HuangYuChuh/ComfyUI_Image_Anything.git
 - **directory** (必需): 图片文件夹路径
 - **start_index** (必需): 起始索引（默认：0）
 - **auto_next** (可选): 自动递增索引（默认：True），关闭后固定读取 start_index
-- **reset_iterator** (可选):强制重置索引到 start_index（默认：False）
-- **自动停止**: 当遍历完文件夹中所有图片后，会自动触发停止信号终止工作流，防止无限循环。
+- **reset_iterator** (可选): 强制重置索引到 start_index（默认：False）
+- **index_list** (可选): 逗号分隔的索引列表，如 `"5,12,23"`。用于**重新处理失败的图片**，填写后只加载指定索引的图片。
+- **自动停止**: 当遍历完文件夹中所有图片（或指定索引）后，会自动触发停止信号终止工作流。
 
 **EditDatasetSaver**:
 - **output_root** (必需): 保存根目录
