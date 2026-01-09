@@ -42,6 +42,7 @@ git clone https://github.com/HuangYuChuh/ComfyUI_Image_Anything.git
 - **start_index** (必需): 起始索引（默认：0）
 - **auto_next** (可选): 自动递增索引（默认：True），关闭后固定读取 start_index
 - **reset_iterator** (可选):强制重置索引到 start_index（默认：False）
+- **自动停止**: 当遍历完文件夹中所有图片后，会自动触发停止信号终止工作流，防止无限循环。
 
 **EditDatasetSaver**:
 - **output_root** (必需): 保存根目录
@@ -53,6 +54,7 @@ git clone https://github.com/HuangYuChuh/ComfyUI_Image_Anything.git
 - **filename_stem**: 原始文件名（可选，连接 Loader 的输出）
 - **save_image_control/target**: 输入图片（可选）
 - **save_caption**: 输入文本标题（可选）
+- **save_format**: 保存格式（可选，支持 jpg/png/webp，默认 jpg）
 
 ### 第一个版本参数 (Batch Image Saver V1)
 - **input_count** (必需): 图片数量（1-5）
