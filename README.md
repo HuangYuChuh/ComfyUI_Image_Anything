@@ -166,16 +166,16 @@ output/
 安装后，在节点列表中查找：
 
 **V2 模块化版本**:
-- `ComfyUI_Image_Anything` → `Image Batch`
-- `ComfyUI_Image_Anything` → `Text Batch`
-- `ComfyUI_Image_Anything` → `Batch Image Saver V2 (Dynamic)`
+- `ComfyUI_Image_Anything` → `Batch_Save` → `Image Batch`
+- `ComfyUI_Image_Anything` → `Batch_Save` → `Text Batch`
+- `ComfyUI_Image_Anything` → `Batch_Save` → `Batch Image Saver V2 (Dynamic)`
 
 **自动标注数据集 (`Edit_Image`)**:
 - `ComfyUI_Image_Anything` → `Edit_Image` → `EditDatasetLoader`
 - `ComfyUI_Image_Anything` → `Edit_Image` → `EditDatasetSaver`
 
 **第一个版本**:
-- `ComfyUI_Image_Anything` → `Batch Image Saver V1`
+- `ComfyUI_Image_Anything` → `Batch_Save` → `Batch Image Saver V1`
 
 ---
 
