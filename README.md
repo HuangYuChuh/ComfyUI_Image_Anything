@@ -5,7 +5,11 @@
 [![ComfyUI](https://img.shields.io/badge/ComfyUI-节点-blue)](https://github.com/comfyanonymous/ComfyUI)
 [![Python](https://img.shields.io/badge/Python-3.10+-blue)](https://www.python.org/)
 
-**ComfyUI Image Anything** 让你能在一次任务运行中批量保存不同阶段的图片和文本，自动整理到统一的时间戳文件夹中，方便后期 review 和批量处理。通过模块化设计（Image Batch + Text Batch + BatchImageSaverV2），你可以灵活组合任意数量的图片批次和文本批次，每个批次内的图片可设置独立保存名称，所有内容会自动重新编号并保存完整的元数据和工作流文件。
+**ComfyUI Image Anything** 提供两大功能：
+
+1. **批量保存工作流输出**：在一次任务运行中批量保存不同阶段的图片和文本，自动整理到统一的时间戳文件夹中。通过模块化设计（Image Batch + Text Batch + BatchImageSaverV2），你可以灵活组合任意数量的图片批次和文本批次，所有内容会自动重新编号并保存完整的元数据和工作流文件。
+
+2. **数据集自动标注**：专为制作图像编辑模型（如 Qwen Edit、Kontext）训练数据集设计。提供自动迭代加载、结构化保存、失败重跑等功能，大幅提升数据集制作效率。
 
 ## 安装方法
 
