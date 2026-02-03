@@ -5,11 +5,13 @@
 [![ComfyUI](https://img.shields.io/badge/ComfyUI-节点-blue)](https://github.com/comfyanonymous/ComfyUI)
 [![Python](https://img.shields.io/badge/Python-3.10+-blue)](https://www.python.org/)
 
-**ComfyUI Image Anything** 提供两大功能：
+**ComfyUI Image Anything** 提供三大核心功能：
 
-1. **批量保存工作流输出**：在一次任务运行中批量保存不同阶段的图片和文本，自动整理到统一的时间戳文件夹中。通过模块化设计（Image Batch + Text Batch + BatchImageSaverV2），你可以灵活组合任意数量的图片批次和文本批次，所有内容会自动重新编号并保存完整的元数据和工作流文件。
+1. **批量保存工作流输出**：在一次任务运行中批量保存不同阶段的图片和文本，自动整理到统一的时间戳文件夹中。通过模块化设计（Image Batch + Text Batch + BatchImageSaverV2），你可以灵活组合任意数量的图片批次和文本批次。
 
 2. **数据集自动标注**：专为制作图像编辑模型（如 Qwen Edit、Kontext）训练数据集设计。提供自动迭代加载、结构化保存、失败重跑等功能，大幅提升数据集制作效率。
+
+3. **分桶图像标准化**：专为 SDXL/Flux 模型训练优化。智能检测图片比例，自动归一化到 `ai-toolkit` 支持的标准训练 Bucket 分辨率，确保零拉伸、无黑边。
 
 ## 安装方法
 
@@ -24,23 +26,22 @@ git clone https://github.com/HuangYuChuh/ComfyUI_Image_Anything.git
 
 ## 节点参数详解
 
-### V2 模块化版本参数
+### 1. 智能分桶预处理 (`Preprocess`)
+**Smart Image Resize for Bucket**
+专为训练准备的图像预处理节点。它会自动将任意比例的图片 Center Crop 到最接近的标准 Bucket 尺寸。
 
-#### Image Batch 节点 (`image_batch`)
-- **image_1 到 image_5** (可选): 最多5张图片输入
-- **save_name_1 到 save_name_5** (可选): 对应每张图片的保存名称
+*   **image**: 输入图片
+*   **mode**: 处理模式
+    *   `Smart (Auto Detect)`: (推荐) 自动计算宽高比，匹配最接近的标准尺寸 (1:1, 3:4, 4:3, 9:16, 16:9)。
+    *   `Force 1024x1024 (1:1)`: 强制方形
+    *   `Force 832x1152 (3:4)`: 强制标准竖图 (人像常用)
+    *   `Force 1152x832 (4:3)`: 强制标准横图
+    *   `Force 768x1344 (9:16)`: 强制长竖图 (手机壁纸)
+    *   `Force 1344x768 (16:9)`: 强制宽屏横图
 
-#### Text Batch 节点 (`text_batch`)
-- **text_1 到 text_5** (可选): 5个通用文本字段，可输入任意内容
-- **name_1 到 name_5** (可选): 对应每个文本的文件名
+> **支持的 SDXL/Flux 标准 Bucket**: 1024x1024, 832x1152, 1152x832, 768x1344, 1344x768.
 
-#### Batch Image Saver V2 主节点
-- **output_folder** (必需): 输出文件夹名称（默认："batch_saves"）
-- **enabled** (可选): 是否启用此节点（默认：true）
-- **batch_1, batch_2, ...** (必需): 连接 Image Batch 节点的输出
-- **text_batch_1, text_batch_2, ...** (可选): 连接 Text Batch 节点的输出
-
-### 自动数据集标注节点参数 (`Edit_Image`)
+### 2. 自动数据集标注 (`Edit_Image`)
 这些是专为自动化制作模型数据集（如 Qwen Edit、Kontext 等）设计的新节点。
 
 **EditDatasetLoader**:
@@ -64,67 +65,46 @@ git clone https://github.com/HuangYuChuh/ComfyUI_Image_Anything.git
 - **save_caption**: 输入文本标题（可选）
 - **save_format**: 保存格式（可选，支持 jpg/png/webp，默认 jpg）
 
-### 第一个版本参数 (Batch Image Saver V1)
+### 3. V2 模块化批量保存 (`Batch_Save`)
+
+#### Image Batch 节点 (`image_batch`)
+- **image_1 到 image_5** (可选): 最多5张图片输入
+- **save_name_1 到 save_name_5** (可选): 对应每张图片的保存名称
+
+#### Text Batch 节点 (`text_batch`)
+- **text_1 到 text_5** (可选): 5个通用文本字段，可输入任意内容
+- **name_1 到 name_5** (可选): 对应每个文本的文件名
+
+#### Batch Image Saver V2 主节点
+- **output_folder** (必需): 输出文件夹名称（默认："batch_saves"）
+- **enabled** (可选): 是否启用此节点（默认：true）
+- **batch_1, batch_2, ...** (必需): 连接 Image Batch 节点的输出
+- **text_batch_1, text_batch_2, ...** (可选): 连接 Text Batch 节点的输出
+
+### V1 版本 (Batch Image Saver V1)
+*(保留用于向后兼容，建议使用 V2)*
 - **input_count** (必需): 图片数量（1-5）
 - **image_1** (必需): 第一张图片
 - **save_name_1** (必需): 第一张图片的保存名称（默认："image"）
 - **output_folder** (必需): 输出文件夹名称（默认："batch_saves"）
-- **enabled** (可选): 是否启用此节点（默认：true）
-- **image_2 到 image_5** (可选): 更多图片输入（根据 input_count 自动扩展）
-- **save_name_2 到 save_name_5** (可选): 对应的保存名称
-- **description** (可选): 文本描述，会保存到文件中
-
-### 输出结果
-- **save_info**: 文本信息（任务ID、时间戳、输出路径、描述信息、所有图片信息）
 
 ## 使用示例
 
-### V2 模块化版本使用方法
+### 场景一：自动清洗数据集 (Auto Clean Dataset)
+1.  **加载**: 使用 `EditDatasetLoader` 读取原始图片文件夹。
+2.  **处理**: 连接 `Smart Image Resize for Bucket` 节点，模式设为 `Smart (Auto Detect)`。
+3.  **保存**: 连接 `EditDatasetSaver` (或普通 Save Image)，即可得到完美符合训练标准的数据集。
 
-#### 基本工作流程（仅图片）
-1. **添加图片收集器**：在工作流中添加 `Image Batch` 节点
-2. **连接图片**：将1-5张图片连接到子节点的 `image_1` 到 `image_5` 输入
-3. **设置保存名称**：为每张图片设置对应的保存名称
-4. **添加主节点**：添加 `Batch Image Saver V2 (Dynamic)` 节点
-5. **连接图片批次**：将子节点的 `image_batch` 输出连接到主节点的 `batch_1` 输入
-6. **运行工作流**
-
-> **注意**：如果需要文本信息，必须添加 `Text Batch` 节点并连接到主节点的 `text_batch_1` 输入。
-
-#### 高级工作流程（图片+对应文本）
-1. **添加图片收集器**：添加 `Image Batch` 节点（如 Batch A）
-2. **添加文本收集器**：添加 `Text Batch` 节点（如 Text A）
-3. **配置内容**：
-   - 在 Batch A 中连接图片并设置保存名称
-   - 在 Text A 中设置5个通用文本字段（text_1到text_5，可输入任意内容）
-4. **添加主节点**：添加 `Batch Image Saver V2 (Dynamic)` 节点
-5. **连接批次**：
-   - 将 Batch A 的 `image_batch` 连接到主节点的 `batch_1`
-   - 将 Text A 的 `text_batch` 连接到主节点的 `text_batch_1`
-6. **运行工作流**
-
-> **注意**：BatchImageSaverV2主节点不再有统一的文本输入字段，所有文本内容必须通过Text Batch提供。
-
-#### 多批次组合示例
-```
-[图片1-5] → [Image Batch A] → batch_1 → \
-[文本A] → [Text Batch A] → text_batch_1 →  → [Batch Image Saver V2]
-[图片6-7] → [Image Batch B] → batch_2 → /
-[文本B] → [Text Batch B] → text_batch_2 → /
-```
-
-#### 自动标注数据集流程 (`Edit Dataset Workflow`)
-这是一个专门用于构建和标注图像数据集的流程：
-1. **加载图片**：使用 `EditDatasetLoader` 指向你的图片文件夹。
-2. **处理流程**：在中间连接任意的处理节点（如图像反推提示词、抠图、风格迁移等）。
-3. **保存结果**：连接 `EditDatasetSaver`。
+### 场景二：自动标注数据集流程 (`Edit Dataset Workflow`)
+这是一个专门用于构建和标注图像编辑模型数据集的流程：
+1. **加载图片**: 使用 `EditDatasetLoader` 指向你的图片文件夹。
+2. **处理流程**: 在中间连接任意的处理节点（如图像反推提示词、抠图、风格迁移等）。
+3. **保存结果**: 连接 `EditDatasetSaver`。
    - **Output Root**: 设置保存结果的根目录。
    - **Naming Style**: 
      - 想要保持文件名不变？选 `Keep Original` 并连接 loader 的 `filename_stem`。
      - 想要统一重命名？选 `Rename (Prefix + Index)` 并设置前缀（如 `AnyBG`）。
    - **Auto Increment**: 即使中断重启，"Rename" 模式也会自动检测已有文件，从下一个序号开始保存，**不会覆盖旧数据**。
-
-> **提示**: 如果想重置索引从头开始，请在 Loader 中开启 `reset_iterator` 运行一次。
 
 #### 高级技巧：重跑失败图片
 当发现某些图片（如索引 5, 12, 23）处理失败时，无需重跑整个数据集：
@@ -135,14 +115,13 @@ git clone https://github.com/HuangYuChuh/ComfyUI_Image_Anything.git
    - `allow_overwrite`: 开启 `True`（允许覆盖旧的错误结果）。
 3. **运行**：节点只处理这 3 张图片，完成后自动停止。
 
-
-### 第一个版本使用方法
-1. 设置 **input_count** 为需要的图片数量 (1-5)
-2. 依次连接相应数量的图片到 `image_1` 到 `image_N`
-3. 设置对应的保存名称，如：`封面`、`细节`、`对比`、`局部`、`全图`
-4. （可选）在 **description** 框中输入关于这些图片的描述信息
-5. （可选）通过 **enabled** 参数控制节点是否启用
-6. 运行工作流
+### 场景三：多批次组合保存 (V2)
+```
+[图片1-5] → [Image Batch A] → batch_1 → \
+[文本A] → [Text Batch A] → text_batch_1 →  → [Batch Image Saver V2]
+[图片6-7] → [Image Batch B] → batch_2 → /
+[文本B] → [Text Batch B] → text_batch_2 → /
+```
 
 ## 输出文件结构
 
@@ -153,29 +132,17 @@ output/
     └── task_20251130_143022/
         ├── 封面_01.png          # 保存名称_序号.png 格式
         ├── 细节_02.png
-        ├── 对比_03.png
-        ├── 局部_04.png
-        ├── 全图_05.png
         ├── prompt.txt           # ComfyUI Prompt 文本（如果有）
         ├── metadata.json        # 基本元数据（包含格式化文本）
         └── workflow.json        # 完整工作流文件（可直接加载）
 ```
 
 ## 节点查找
-
 安装后，在节点列表中查找：
 
-**V2 模块化版本**:
-- `ComfyUI_Image_Anything` → `Batch_Save` → `Image Batch`
-- `ComfyUI_Image_Anything` → `Batch_Save` → `Text Batch`
-- `ComfyUI_Image_Anything` → `Batch_Save` → `Batch Image Saver V2 (Dynamic)`
-
-**自动标注数据集 (`Edit_Image`)**:
-- `ComfyUI_Image_Anything` → `Edit_Image` → `EditDatasetLoader`
-- `ComfyUI_Image_Anything` → `Edit_Image` → `EditDatasetSaver`
-
-**第一个版本**:
-- `ComfyUI_Image_Anything` → `Batch_Save` → `Batch Image Saver V1`
+*   **预处理 (`Preprocess`)**: `ComfyUI_Image_Anything` → `Preprocess` → `Smart Image Resize for Bucket`
+*   **数据集 (`Edit_Image`)**: `ComfyUI_Image_Anything` → `Edit_Image` → `EditDatasetLoader`, `EditDatasetSaver`
+*   **批量保存 (`Batch_Save`)**: `ComfyUI_Image_Anything` → `Batch_Save` → `Batch Image Saver V2 (Dynamic)`
 
 ---
 
