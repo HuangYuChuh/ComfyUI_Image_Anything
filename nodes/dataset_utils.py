@@ -4,6 +4,7 @@ import numpy as np
 from PIL import Image, ImageOps
 import signal
 import sys
+import fnmatch
 
 def interrupt_handler(signum, frame):
     print("Process interrupted")
@@ -36,39 +37,54 @@ class EditDatasetLoader:
             },
             "optional": {
                 "index_list": ("STRING", {"default": "", "multiline": False, "tooltip": "Comma-separated indices to process, e.g. '5,12,23'. Leave empty for sequential mode."}),
+                "control_img_suffix": ("STRING", {"default": "", "multiline": False, "tooltip": "Suffix for Control Image to find (e.g. _W). Replaces target suffix."}),
+                "target_img_suffix": ("STRING", {"default": "", "multiline": False, "tooltip": "Suffix for Target Image to load (e.g. _O). Acts as filter."}),
             }
         }
 
-    RETURN_TYPES = ("IMAGE", "STRING")
-    RETURN_NAMES = ("image", "filename_stem")
+    RETURN_TYPES = ("IMAGE", "IMAGE", "STRING")
+    RETURN_NAMES = ("control_img", "target_img", "filename_stem")
     FUNCTION = "load_data"
     CATEGORY = "ComfyUI_Image_Anything/Edit_Image"
 
     @classmethod
-    def IS_CHANGED(s, directory, start_index, auto_next, reset_iterator, index_list="", **kwargs):
+    def IS_CHANGED(s, directory, start_index, auto_next, reset_iterator, index_list="", target_img_suffix="", control_img_suffix="", **kwargs):
         if reset_iterator:
             return float("NaN")
         if not auto_next:
             return float("nan")
         return float("NaN")
 
-    def load_data(self, directory, start_index, auto_next, reset_iterator, index_list=""):
+    def load_data(self, directory, start_index, auto_next, reset_iterator, index_list="", target_img_suffix="", control_img_suffix=""):
         global _LOADER_COUNTERS
         
         if not os.path.exists(directory):
             print(f"EditDatasetLoader: Directory {directory} not found.")
-            return (self._empty_image(), "")
+            return (self._empty_image(), self._empty_image(), "")
 
         valid_extensions = {'.jpg', '.jpeg', '.png', '.webp', '.bmp', '.tiff'}
         
-        # Scan images
-        files = [f for f in os.listdir(directory) 
-                 if os.path.splitext(f)[1].lower() in valid_extensions]
+        # Scan images with optional target_img_suffix logic
+        all_files = os.listdir(directory)
+        
+        # Construct search pattern from target_img_suffix if present
+        # If suffix is "_O", pattern becomes "*_O.*" to match any extension
+        if target_img_suffix:
+            search_pattern = f"*{target_img_suffix}.*"
+            # Filter files by pattern
+            filtered_files = fnmatch.filter(all_files, search_pattern)
+            # Filter by extension
+            files = [f for f in filtered_files 
+                     if os.path.splitext(f)[1].lower() in valid_extensions]
+        else:
+            files = [f for f in all_files 
+                     if os.path.splitext(f)[1].lower() in valid_extensions]
+            
         files.sort()
         
         if not files:
-            print(f"EditDatasetLoader: No images found in {directory}")
-            return (self._empty_image(), "")
+            print(f"EditDatasetLoader: No images found in {directory} (Suffix: {target_img_suffix})")
+            return (self._empty_image(), self._empty_image(), "")
 
         # Parse index_list if provided
         target_indices = None
@@ -102,7 +118,7 @@ class EditDatasetLoader:
                 print(f"EditDatasetLoader: All {len(target_indices)} specified indices processed. Stopping workflow.")
                 signal.signal(signal.SIGINT, interrupt_handler)
                 signal.raise_signal(signal.SIGINT)
-                return (self._empty_image(), "")
+                return (self._empty_image(), self._empty_image(), "")
             
             final_index = target_indices[list_position]
             
@@ -110,7 +126,7 @@ class EditDatasetLoader:
                 print(f"EditDatasetLoader: Index {final_index} out of range (Total: {len(files)}). Skipping.")
                 if auto_next:
                     _LOADER_COUNTERS[key] += 1
-                return (self._empty_image(), "")
+                return (self._empty_image(), self._empty_image(), "")
         else:
             # Sequential mode: original behavior
             final_index = start_index
@@ -121,12 +137,16 @@ class EditDatasetLoader:
                 print(f"EditDatasetLoader: Index {final_index} out of range (Total: {len(files)}). Stopping workflow.")
                 signal.signal(signal.SIGINT, interrupt_handler)
                 signal.raise_signal(signal.SIGINT)
-                return (self._empty_image(), "")
+                return (self._empty_image(), self._empty_image(), "")
 
         # Get Image
         filename = files[final_index]
         image_path = os.path.join(directory, filename)
         current_stem = os.path.splitext(filename)[0]
+        
+            # Strip target_img_suffix from stem if present to keep filenames clean
+        if target_img_suffix and target_img_suffix in current_stem:
+            current_stem = current_stem.replace(target_img_suffix, "")
         
         # Update counter
         if auto_next:
@@ -139,8 +159,49 @@ class EditDatasetLoader:
 
         # Load image
         tensor = self._load_img(image_path)
+        
+        # Load Control Image (previously pair image)
+        control_tensor = self._empty_image()
+        
+        # Only attempt to find control image if both suffixes are provided
+        if target_img_suffix and control_img_suffix:
+            replace_old = target_img_suffix
+            replace_new = control_img_suffix
+            
+            # Simple string replacement on the filename (including extension checks)
+            # Try to find a matching file with ANY valid extension
+            
+            # 1. Calculate target stem (remove replace_old, add replace_new)
+            if replace_old in filename:
+                target_filename_base = filename.replace(replace_old, replace_new)
+                
+                # We need to find the actual file because extension might differ (e.g. .jpg vs .png)
+                # First, extract the stem of the target filename (ignoring extension of origin)
+                target_stem = os.path.splitext(target_filename_base)[0]
+                
+                # Search directory for file starting with target_stem
+                # This is a bit expensive but robust
+                candidate_files = []
+                for f in os.listdir(directory):
+                    if f.startswith(target_stem) and os.path.splitext(f)[1].lower() in valid_extensions:
+                        candidate_files.append(f)
+                
+                # Check for exact matches (ignoring extension)
+                match_file = None
+                for candidate in candidate_files:
+                    if os.path.splitext(candidate)[0] == target_stem:
+                        match_file = candidate
+                        break
+                
+                if match_file:
+                    pair_path = os.path.join(directory, match_file)
+                    control_tensor = self._load_img(pair_path)
+                else:
+                    print(f"EditDatasetLoader: Control file for {filename} not found (Target component: {target_stem})")
+            else:
+                 print(f"EditDatasetLoader: target suffix '{replace_old}' not found in filename '{filename}'")
 
-        return (tensor, current_stem)
+        return (control_tensor, tensor, current_stem)
 
     def _load_img(self, path):
         if not path or not os.path.exists(path):
@@ -254,6 +315,7 @@ class EditDatasetSaver:
                 _SAVER_COUNTERS[key] = current_idx + 1
 
         else:
+            # Keep Original logic
             final_name = filename_stem if filename_stem else f"unknown_{index}"
 
         print(f"EditDatasetSaver: Saving {final_name} (Style: {naming_style})...")

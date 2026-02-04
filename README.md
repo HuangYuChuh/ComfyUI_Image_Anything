@@ -65,6 +65,25 @@ git clone https://github.com/HuangYuChuh/ComfyUI_Image_Anything.git
 - **save_caption**: 输入文本标题（可选）
 - **save_format**: 保存格式（可选，支持 jpg/png/webp，默认 jpg）
 
+#### 高级功能：配对数据加载 (Paired Data Loading)
+支持加载训练常用的 "Target Image + Control Image" 数据对。
+
+**参数设置**:
+- `target_img_suffix`: Target 图片的后缀（如 `_O`）。填写后，通过 `target_img` 端口输出。
+- `control_img_suffix`: Control 图片的后缀（如 `_W`）。填写后，通过 `control_img` 端口输出。
+
+**逻辑**:
+加载器会自动筛选包含 `target_img_suffix` 的图片，并自动查找对应 `control_img_suffix` 的配对文件。
+例如：填 `_O` 和 `_W`。加载 `Dog_O.jpg` 时，自动找到 `Dog_W.png` 并作为 control 输出。
+
+**Outputs**:
+- `control_img`: 原图/条件图 (对应 `_W`)，**推荐放在上面**。
+- `target_img`: 目标图 (对应 `_O`)。
+- `filename_stem`: 文件名（**已自动去除后缀**）。例如加载 `A_O.jpg`，这里输出 `A`。这使得 Saver 可以直接保存为干净的文件名。
+
+**EditDatasetSaver更新**:
+无需任何额外设置。只要 `EditDatasetLoader` 获取到了干净的 `filename_stem`，Saver 就会自动以该名字保存所有输出文件（Control/Target/Txt），确保文件名一致。
+
 ### 3. V2 模块化批量保存 (`Batch_Save`)
 
 #### Image Batch 节点 (`image_batch`)
