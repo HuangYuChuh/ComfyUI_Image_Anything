@@ -15,6 +15,9 @@ classifiers = [
 Homepage = "https://github.com/HuangYuChuh/ComfyUI_Image_Anything"
 Repository = "https://github.com/HuangYuChuh/ComfyUI_Image_Anything"
 
+[project.keywords]
+keywords = ["comfyui", "workflow-automation", "dataset-tools", "batch-processing"]
+
 [tool.comfy]
 PublisherId = "HuangYuChuh"
 DisplayName = "ComfyUI Image Anything"
