@@ -45,7 +45,7 @@ class EditDatasetLoader:
     RETURN_TYPES = ("IMAGE", "IMAGE", "STRING")
     RETURN_NAMES = ("control_img", "target_img", "filename_stem")
     FUNCTION = "load_data"
-    CATEGORY = "ComfyUI_Image_Anything/Edit_Image"
+    CATEGORY = "🚦 ComfyUI_Image_Anything/Edit_Image"
 
     @classmethod
     def IS_CHANGED(s, directory, start_index, auto_next, reset_iterator, index_list="", target_img_suffix="", control_img_suffix="", **kwargs):
@@ -259,7 +259,7 @@ class EditDatasetSaver:
     RETURN_TYPES = ()
     OUTPUT_NODE = True
     FUNCTION = "save_dataset"
-    CATEGORY = "ComfyUI_Image_Anything/Edit_Image"
+    CATEGORY = "🚦 ComfyUI_Image_Anything/Edit_Image"
 
     def save_dataset(self, output_root, naming_style, filename_prefix, index, allow_overwrite,
                      filename_stem="", save_image_control=None, save_image_target=None, save_caption=None,

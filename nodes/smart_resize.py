@@ -30,7 +30,7 @@ class SmartImageResizeForBucket:
     RETURN_TYPES = ("IMAGE", "INT", "INT")
     RETURN_NAMES = ("IMAGE", "width", "height")
     FUNCTION = "resize_image"
-    CATEGORY = "ComfyUI_Image_Anything/Preprocess"
+    CATEGORY = "🚦 ComfyUI_Image_Anything/Preprocess"
     DESCRIPTION = "智能缩放裁剪节点，支持多种标准训练分辨率 (SDXL Buckets)。Smart 模式会自动匹配最佳比例。"
 
     def resize_image(self, image, mode):

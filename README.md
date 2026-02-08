@@ -142,6 +142,24 @@ git clone https://github.com/HuangYuChuh/ComfyUI_Image_Anything.git
 [文本B] → [Text Batch B] → text_batch_2 → /
 ```
 
+### 4. 文本阻塞器 (`Text`)
+
+**Text Blocker**
+
+工作流中的文本中转编辑节点。当执行到此节点时，会弹出侧边编辑面板，让你修改上游传入的文本后再继续执行。非常适合需要人工检查或微调提示词的场景。
+
+**参数**:
+- **text** (必需): 从上游节点连接输入的文本（无widget输入框，强制接收连接）
+- **enabled** (可选): 是否启用阻塞编辑（默认：True）
+  - `True`: 执行时弹出编辑框，等待用户确认
+  - `False`: 直接透传文本，不阻塞
+
+**使用场景**:
+```
+[LLM生成提示词] ──→ [Text Blocker] ──→ [KSampler/图像生成]
+```
+执行时会在右侧弹出编辑面板，可以预览和修改LLM生成的提示词，确认后继续生成图像。
+
 ## 输出文件结构
 
 每次运行都会创建独立的时间戳文件夹：
@@ -157,12 +175,13 @@ output/
 ```
 
 ## 节点查找
-安装后，在节点列表中查找：
 
-*   **预处理 (`Preprocess`)**: `ComfyUI_Image_Anything` → `Preprocess` → `Smart Image Resize for Bucket`
-*   **数据集 (`Edit_Image`)**: `ComfyUI_Image_Anything` → `Edit_Image` → `EditDatasetLoader`, `EditDatasetSaver`
-*   **批量保存 (`Batch_Save`)**: `ComfyUI_Image_Anything` → `Batch_Save` → `Batch Image Saver V2 (Dynamic)`
+安装后，在节点列表中查找（所有节点带有 🚦 标识）：
 
----
+| 分类 | 路径 | 节点 |
+|------|------|------|
+| 预处理 | `🚦 ComfyUI_Image_Anything` → `Preprocess` | Smart Image Resize for Bucket |
+| 数据集 | `🚦 ComfyUI_Image_Anything` → `Edit_Image` | EditDatasetLoader, EditDatasetSaver |
+| 批量保存 | `🚦 ComfyUI_Image_Anything` → `Batch_Save` | Batch Image Saver V2, Image Collector, Text Collector |
+| 文本工具 | `🚦 ComfyUI_Image_Anything` → `Text` | Text Blocker |
 
-**Made with love for the ComfyUI Community**
