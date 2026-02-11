@@ -64,7 +64,7 @@ git clone https://github.com/HuangYuChuh/ComfyUI_Image_Anything.git
 - **save_image_control/target**: 输入图片（可选）
 - **save_caption**: 输入文本标题（可选）
 - **save_format**: 保存格式（可选，支持 jpg/png/webp，默认 jpg）
-- **output_path**: 强制输出路径（可选）。连接此端口将忽略 `output_root`，优先使用传入的路径。
+- **directory**: 强制输出路径（可选）。连接此端口将忽略 `output_root`，优先使用传入的路径。
 
 #### 高级功能：配对数据加载 (Paired Data Loading)
 支持加载训练常用的 "Target Image + Control Image" 数据对。
@@ -86,7 +86,7 @@ git clone https://github.com/HuangYuChuh/ComfyUI_Image_Anything.git
 
 **EditDatasetSaver更新**:
 无需任何额外设置。只要 `EditDatasetLoader` 获取到了干净的 `filename_stem`，Saver 就会自动以该名字保存所有输出文件（Control/Target/Txt），确保文件名一致。
-若要路径透传，可将 `directory` 连接到 Saver 的 `output_path`。
+若要路径透传，可将 `directory` 连接到 Saver 的 `directory`。
 
 ### 3. V2 模块化批量保存 (`Batch_Save`)
 

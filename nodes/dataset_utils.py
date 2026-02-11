@@ -236,8 +236,10 @@ class EditDatasetSaver:
     - Keep Original: Uses filename_stem
     - Rename (Prefix + Index): Uses filename_prefix + index
     
+
+    
     Override:
-    - If `output_path` is connected, it overrides `output_root`.
+    - If `directory` is connected, it overrides `output_root`.
     """
     def __init__(self):
         pass
@@ -258,7 +260,8 @@ class EditDatasetSaver:
                 "save_image_target": ("IMAGE",),
                 "save_caption": ("STRING", {"forceInput": True}),
                 "save_format": (["jpg", "png", "webp"],),
-                "output_path": ("STRING", {"forceInput": True, "tooltip": "Optional: Override output_root with this path"}),
+                "save_format": (["jpg", "png", "webp"],),
+                "directory": ("STRING", {"forceInput": True, "tooltip": "Optional: Override output_root with this path"}),
             }
         }
 
@@ -269,11 +272,11 @@ class EditDatasetSaver:
 
     def save_dataset(self, output_root, naming_style, filename_prefix, index, allow_overwrite,
                      filename_stem="", save_image_control=None, save_image_target=None, save_caption=None,
-                     save_format="jpg", output_path=None):
+                     save_format="jpg", directory=None):
 
-        # Override output_root if output_path is connected
-        if output_path and output_path.strip():
-            output_root = output_path
+        # Override output_root if directory is connected
+        if directory and directory.strip():
+            output_root = directory
 
         if not output_root:
             print("EditDatasetSaver: No output_root provided.")
