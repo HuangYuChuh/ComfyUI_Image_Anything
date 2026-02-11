@@ -42,8 +42,8 @@ class EditDatasetLoader:
             }
         }
 
-    RETURN_TYPES = ("IMAGE", "IMAGE", "STRING")
-    RETURN_NAMES = ("control_img", "target_img", "filename_stem")
+    RETURN_TYPES = ("IMAGE", "IMAGE", "STRING", "STRING")
+    RETURN_NAMES = ("control_img", "target_img", "filename_stem", "directory")
     FUNCTION = "load_data"
     CATEGORY = "🚦 ComfyUI_Image_Anything/Edit_Image"
 
@@ -201,7 +201,7 @@ class EditDatasetLoader:
             else:
                  print(f"EditDatasetLoader: target suffix '{replace_old}' not found in filename '{filename}'")
 
-        return (control_tensor, tensor, current_stem)
+        return (control_tensor, tensor, current_stem, directory)
 
     def _load_img(self, path):
         if not path or not os.path.exists(path):
@@ -253,6 +253,7 @@ class EditDatasetSaver:
                 "save_image_target": ("IMAGE",),
                 "save_caption": ("STRING", {"forceInput": True}),
                 "save_format": (["jpg", "png", "webp"],),
+                "output_path": ("STRING", {"forceInput": True, "tooltip": "Optional: Override output_root with this path"}),
             }
         }
 
@@ -263,7 +264,11 @@ class EditDatasetSaver:
 
     def save_dataset(self, output_root, naming_style, filename_prefix, index, allow_overwrite,
                      filename_stem="", save_image_control=None, save_image_target=None, save_caption=None,
-                     save_format="jpg"):
+                     save_format="jpg", output_path=None):
+
+        # Override output_root if output_path is connected
+        if output_path and output_path.strip():
+            output_root = output_path
 
         if not output_root:
             print("EditDatasetSaver: No output_root provided.")
