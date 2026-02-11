@@ -56,7 +56,7 @@ git clone https://github.com/HuangYuChuh/ComfyUI_Image_Anything.git
 - **output_root** (必需): 保存根目录
 - **naming_style** (必需): 
     - `Keep Original`: 保持原文件名
-    - `Rename (Prefix + Index)`: 使用前缀+自动序号
+    - `Rename (Prefix + Auto-Inc)`: 使用前缀+自动序号
 - **filename_prefix**: 重命名时的前缀（默认："Dataset"）
 - **allow_overwrite** (新增): 是否允许覆盖已有文件。开启后配合 `index_list` 使用，可自动覆盖错误的数据对。
 - **filename_stem**: 原始文件名（可选，连接 Loader 的输出）

@@ -234,7 +234,7 @@ class EditDatasetSaver:
     - Keep Original: Uses filename_stem
     - Keep Original: Uses filename_stem
     - Keep Original: Uses filename_stem
-    - Rename (Prefix + Index): Uses filename_prefix + index (Auto-increment)
+    - Rename (Prefix + Auto-Inc): Uses filename_prefix + index (Auto-increment)
     
     Override:
     - If `directory` is connected, it overrides `output_root`.
@@ -247,7 +247,7 @@ class EditDatasetSaver:
         return {
             "required": {
                 "output_root": ("STRING", {"default": "", "tooltip": "Root directory for saving"}),
-                "naming_style": (["Keep Original", "Rename (Prefix + Index)"],),
+                "naming_style": (["Keep Original", "Rename (Prefix + Auto-Inc)"],),
                 "filename_prefix": ("STRING", {"default": "Dataset"}),
                 "allow_overwrite": ("BOOLEAN", {"default": False, "label_on": "Overwrite", "label_off": "Skip Existing"}),
             },
@@ -285,7 +285,7 @@ class EditDatasetSaver:
         os.makedirs(target_dir, exist_ok=True)
 
         # Determine filename
-        if naming_style == "Rename (Prefix + Index)":
+        if naming_style == "Rename (Prefix + Auto-Inc)":
             if allow_overwrite:
                 # Overwrite mode: use provided index directly
                 final_name = f"{filename_prefix}_{index:04d}"
