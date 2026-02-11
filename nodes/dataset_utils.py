@@ -21,8 +21,7 @@ class EditDatasetLoader:
     Logic:
     1. Scans `directory` for images.
     2. Returns image at `start_index` (or auto-incremented index).
-
-    3. Returns filename stem and directory path for downstream use.
+    3. Returns filename stem, directory path, and current index for downstream use.
     """
     def __init__(self):
         pass
@@ -43,8 +42,8 @@ class EditDatasetLoader:
             }
         }
 
-    RETURN_TYPES = ("IMAGE", "IMAGE", "STRING", "STRING")
-    RETURN_NAMES = ("control_img", "target_img", "filename_stem", "directory")
+    RETURN_TYPES = ("IMAGE", "IMAGE", "STRING", "STRING", "INT")
+    RETURN_NAMES = ("control_img", "target_img", "filename_stem", "directory", "current_index")
     FUNCTION = "load_data"
     CATEGORY = "🚦 ComfyUI_Image_Anything/Edit_Image"
 
@@ -202,7 +201,7 @@ class EditDatasetLoader:
             else:
                  print(f"EditDatasetLoader: target suffix '{replace_old}' not found in filename '{filename}'")
 
-        return (control_tensor, tensor, current_stem, directory)
+        return (control_tensor, tensor, current_stem, directory, final_index)
 
     def _load_img(self, path):
         if not path or not os.path.exists(path):
@@ -234,9 +233,8 @@ class EditDatasetSaver:
     Naming Logic:
     - Keep Original: Uses filename_stem
     - Keep Original: Uses filename_stem
-    - Rename (Prefix + Index): Uses filename_prefix + index
-    
-
+    - Keep Original: Uses filename_stem
+    - Rename (Prefix + Index): Uses filename_prefix + index (Auto-increment)
     
     Override:
     - If `directory` is connected, it overrides `output_root`.
@@ -251,7 +249,7 @@ class EditDatasetSaver:
                 "output_root": ("STRING", {"default": "", "tooltip": "Root directory for saving"}),
                 "naming_style": (["Keep Original", "Rename (Prefix + Index)"],),
                 "filename_prefix": ("STRING", {"default": "AnyBG"}),
-                "index": ("INT", {"default": 0, "min": 0, "max": 999999}),
+                "filename_prefix": ("STRING", {"default": "AnyBG"}),
                 "allow_overwrite": ("BOOLEAN", {"default": False, "label_on": "Overwrite", "label_off": "Skip Existing"}),
             },
             "optional": {
@@ -259,7 +257,6 @@ class EditDatasetSaver:
                 "save_image_control": ("IMAGE",),
                 "save_image_target": ("IMAGE",),
                 "save_caption": ("STRING", {"forceInput": True}),
-                "save_format": (["jpg", "png", "webp"],),
                 "save_format": (["jpg", "png", "webp"],),
                 "directory": ("STRING", {"forceInput": True, "tooltip": "Optional: Override output_root with this path"}),
             }
@@ -270,7 +267,7 @@ class EditDatasetSaver:
     FUNCTION = "save_dataset"
     CATEGORY = "🚦 ComfyUI_Image_Anything/Edit_Image"
 
-    def save_dataset(self, output_root, naming_style, filename_prefix, index, allow_overwrite,
+    def save_dataset(self, output_root, naming_style, filename_prefix, allow_overwrite,
                      filename_stem="", save_image_control=None, save_image_target=None, save_caption=None,
                      save_format="jpg", directory=None):
 
@@ -298,6 +295,7 @@ class EditDatasetSaver:
                 global _SAVER_COUNTERS
                 key = f"{output_root}_{filename_prefix}"
                 
+                # Check for max index if we need auto-increment or initialization
                 if key not in _SAVER_COUNTERS:
                     max_idx = -1
                     # Scan directories to find max index
@@ -320,12 +318,12 @@ class EditDatasetSaver:
                                         continue
                     _SAVER_COUNTERS[key] = max_idx + 1
                 
-                # Use the greater of global counter or user input
-                current_idx = max(_SAVER_COUNTERS[key], index)
+                # Auto mode: use global counter
+                current_idx = _SAVER_COUNTERS[key]
                 final_name = f"{filename_prefix}_{current_idx:04d}"
                 
-                # Update global counter
-                _SAVER_COUNTERS[key] = current_idx + 1
+                # Update global counter for next auto-increment
+                _SAVER_COUNTERS[key] += 1
 
         else:
             # Keep Original logic

@@ -58,7 +58,6 @@ git clone https://github.com/HuangYuChuh/ComfyUI_Image_Anything.git
     - `Keep Original`: 保持原文件名
     - `Rename (Prefix + Index)`: 使用前缀+自动序号
 - **filename_prefix**: 重命名时的前缀（默认："AnyBG"）
-- **index**: 重命名时的起始序号（默认：0，会自动跳过已存在文件）
 - **allow_overwrite** (新增): 是否允许覆盖已有文件。开启后配合 `index_list` 使用，可自动覆盖错误的数据对。
 - **filename_stem**: 原始文件名（可选，连接 Loader 的输出）
 - **save_image_control/target**: 输入图片（可选）
@@ -82,7 +81,9 @@ git clone https://github.com/HuangYuChuh/ComfyUI_Image_Anything.git
 - `target_img`: 目标图 (对应 `_O`)。
 - `target_img`: 目标图 (对应 `_O`)。
 - `filename_stem`: 文件名（**已自动去除后缀**）。例如加载 `A_O.jpg`，这里输出 `A`。这使得 Saver 可以直接保存为干净的文件名。
+- `filename_stem`: 文件名（**已自动去除后缀**）。例如加载 `A_O.jpg`，这里输出 `A`。这使得 Saver 可以直接保存为干净的文件名。
 - `directory`: 当前图片的文件夹路径。
+- `current_index`: 当前图片的索引值 (int)。
 
 **EditDatasetSaver更新**:
 无需任何额外设置。只要 `EditDatasetLoader` 获取到了干净的 `filename_stem`，Saver 就会自动以该名字保存所有输出文件（Control/Target/Txt），确保文件名一致。
