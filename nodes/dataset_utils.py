@@ -248,8 +248,7 @@ class EditDatasetSaver:
             "required": {
                 "output_root": ("STRING", {"default": "", "tooltip": "Root directory for saving"}),
                 "naming_style": (["Keep Original", "Rename (Prefix + Index)"],),
-                "filename_prefix": ("STRING", {"default": "AnyBG"}),
-                "filename_prefix": ("STRING", {"default": "AnyBG"}),
+                "filename_prefix": ("STRING", {"default": "Image"}),
                 "allow_overwrite": ("BOOLEAN", {"default": False, "label_on": "Overwrite", "label_off": "Skip Existing"}),
             },
             "optional": {
