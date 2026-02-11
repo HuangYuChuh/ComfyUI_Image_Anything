@@ -21,7 +21,8 @@ class EditDatasetLoader:
     Logic:
     1. Scans `directory` for images.
     2. Returns image at `start_index` (or auto-incremented index).
-    3. Returns filename stem for downstream use.
+
+    3. Returns filename stem and directory path for downstream use.
     """
     def __init__(self):
         pass
@@ -232,7 +233,11 @@ class EditDatasetSaver:
     
     Naming Logic:
     - Keep Original: Uses filename_stem
+    - Keep Original: Uses filename_stem
     - Rename (Prefix + Index): Uses filename_prefix + index
+    
+    Override:
+    - If `output_path` is connected, it overrides `output_root`.
     """
     def __init__(self):
         pass
