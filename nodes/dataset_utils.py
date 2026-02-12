@@ -30,7 +30,7 @@ class EditDatasetLoader:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "directory": ("STRING", {"default": "", "multiline": False, "tooltip": "Path to image folder"}),
+                "input_dir": ("STRING", {"default": "", "multiline": False, "tooltip": "Path to image folder"}),
                 "start_index": ("INT", {"default": 0, "min": 0, "max": 999999, "step": 1}),
                 "auto_next": ("BOOLEAN", {"default": True, "label_on": "Auto Next", "label_off": "Fixed Index"}),
                 "reset_iterator": ("BOOLEAN", {"default": False, "label_on": "Reset Index", "label_off": "Continue"}),
@@ -48,24 +48,24 @@ class EditDatasetLoader:
     CATEGORY = "🚦 ComfyUI_Image_Anything/Edit_Image"
 
     @classmethod
-    def IS_CHANGED(s, directory, start_index, auto_next, reset_iterator, index_list="", target_img_suffix="", control_img_suffix="", **kwargs):
+    def IS_CHANGED(s, input_dir, start_index, auto_next, reset_iterator, index_list="", target_img_suffix="", control_img_suffix="", **kwargs):
         if reset_iterator:
             return float("NaN")
         if not auto_next:
             return float("nan")
         return float("NaN")
 
-    def load_data(self, directory, start_index, auto_next, reset_iterator, index_list="", target_img_suffix="", control_img_suffix=""):
+    def load_data(self, input_dir, start_index, auto_next, reset_iterator, index_list="", target_img_suffix="", control_img_suffix=""):
         global _LOADER_COUNTERS
         
-        if not os.path.exists(directory):
-            print(f"EditDatasetLoader: Directory {directory} not found.")
+        if not os.path.exists(input_dir):
+            print(f"EditDatasetLoader: Directory {input_dir} not found.")
             return (self._empty_image(), self._empty_image(), "")
 
         valid_extensions = {'.jpg', '.jpeg', '.png', '.webp', '.bmp', '.tiff'}
         
         # Scan images with optional target_img_suffix logic
-        all_files = os.listdir(directory)
+        all_files = os.listdir(input_dir)
         
         # Construct search pattern from target_img_suffix if present
         # If suffix is "_O", pattern becomes "*_O.*" to match any extension
@@ -83,7 +83,7 @@ class EditDatasetLoader:
         files.sort()
         
         if not files:
-            print(f"EditDatasetLoader: No images found in {directory} (Suffix: {target_img_suffix})")
+            print(f"EditDatasetLoader: No images found in {input_dir} (Suffix: {target_img_suffix})")
             return (self._empty_image(), self._empty_image(), "")
 
         # Parse index_list if provided
@@ -99,15 +99,15 @@ class EditDatasetLoader:
 
         # Determine counter key
         if target_indices:
-            key = f"{directory}_list_{index_list}"
+            key = f"{input_dir}_list_{index_list}"
         else:
-            key = directory
+            key = input_dir
 
         # Reset or initialize counter
         if reset_iterator or key not in _LOADER_COUNTERS:
             _LOADER_COUNTERS[key] = 0 if target_indices else start_index
             if reset_iterator:
-                print(f"EditDatasetLoader: Iterator reset for {directory}")
+                print(f"EditDatasetLoader: Iterator reset for {input_dir}")
 
         # Determine which index to load
         if target_indices:
@@ -141,7 +141,7 @@ class EditDatasetLoader:
 
         # Get Image
         filename = files[final_index]
-        image_path = os.path.join(directory, filename)
+        image_path = os.path.join(input_dir, filename)
         current_stem = os.path.splitext(filename)[0]
         
             # Strip target_img_suffix from stem if present to keep filenames clean
@@ -182,7 +182,7 @@ class EditDatasetLoader:
                 # Search directory for file starting with target_stem
                 # This is a bit expensive but robust
                 candidate_files = []
-                for f in os.listdir(directory):
+                for f in os.listdir(input_dir):
                     if f.startswith(target_stem) and os.path.splitext(f)[1].lower() in valid_extensions:
                         candidate_files.append(f)
                 
@@ -194,14 +194,14 @@ class EditDatasetLoader:
                         break
                 
                 if match_file:
-                    pair_path = os.path.join(directory, match_file)
+                    pair_path = os.path.join(input_dir, match_file)
                     control_tensor = self._load_img(pair_path)
                 else:
                     print(f"EditDatasetLoader: Control file for {filename} not found (Target component: {target_stem})")
             else:
                  print(f"EditDatasetLoader: target suffix '{replace_old}' not found in filename '{filename}'")
 
-        return (control_tensor, tensor, current_stem, directory, final_index)
+        return (control_tensor, tensor, current_stem, input_dir, final_index)
 
     def _load_img(self, path):
         if not path or not os.path.exists(path):
@@ -257,7 +257,7 @@ class EditDatasetSaver:
                 "save_image_target": ("IMAGE",),
                 "save_caption": ("STRING", {"forceInput": True}),
                 "save_format": (["jpg", "png", "webp"],),
-                "directory": ("STRING", {"forceInput": True, "tooltip": "Optional: Override output_root with this path"}),
+                "output_dir": ("STRING", {"forceInput": True, "tooltip": "Optional: Override output_root with this path"}),
             }
         }
 
@@ -268,11 +268,11 @@ class EditDatasetSaver:
 
     def save_dataset(self, output_root, naming_style, filename_prefix, allow_overwrite,
                      filename_stem="", save_image_control=None, save_image_target=None, save_caption=None,
-                     save_format="jpg", directory=None):
+                     save_format="jpg", output_dir=None):
 
-        # Override output_root if directory is connected
-        if directory and directory.strip():
-            output_root = directory
+        # Override output_root if output_dir is connected
+        if output_dir and output_dir.strip():
+            output_root = output_dir
 
         if not output_root:
             print("EditDatasetSaver: No output_root provided.")
@@ -286,13 +286,9 @@ class EditDatasetSaver:
 
         # Determine filename
         if naming_style == "Rename (Prefix + Auto-Inc)":
-            if allow_overwrite:
-                # Overwrite mode: use provided index directly
-                final_name = f"{filename_prefix}_{index:04d}"
-            else:
-                # Normal mode: scan for max index and auto-increment
-                global _SAVER_COUNTERS
-                key = f"{output_root}_{filename_prefix}"
+            # Normal mode: scan for max index and auto-increment
+            global _SAVER_COUNTERS
+            key = f"{output_root}_{filename_prefix}"
                 
                 # Check for max index if we need auto-increment or initialization
                 if key not in _SAVER_COUNTERS:
