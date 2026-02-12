@@ -290,35 +290,35 @@ class EditDatasetSaver:
             global _SAVER_COUNTERS
             key = f"{output_root}_{filename_prefix}"
                 
-                # Check for max index if we need auto-increment or initialization
-                if key not in _SAVER_COUNTERS:
-                    max_idx = -1
-                    # Scan directories to find max index
-                    dirs_to_check = [control_dir, target_dir]
-                    for d in dirs_to_check:
-                        if os.path.exists(d):
-                            for f in os.listdir(d):
-                                if f.startswith(filename_prefix):
-                                    # expect format: prefix_00000.ext
-                                    try:
-                                        # strip extension
-                                        base = os.path.splitext(f)[0]
-                                        # strip prefix
-                                        remain = base[len(filename_prefix):]
-                                        if remain.startswith('_') and remain[1:].isdigit():
-                                            idx = int(remain[1:])
-                                            if idx > max_idx:
-                                                max_idx = idx
-                                    except:
-                                        continue
-                    _SAVER_COUNTERS[key] = max_idx + 1
-                
-                # Auto mode: use global counter
-                current_idx = _SAVER_COUNTERS[key]
-                final_name = f"{filename_prefix}_{current_idx:04d}"
-                
-                # Update global counter for next auto-increment
-                _SAVER_COUNTERS[key] += 1
+            # Check for max index if we need auto-increment or initialization
+            if key not in _SAVER_COUNTERS:
+                max_idx = -1
+                # Scan directories to find max index
+                dirs_to_check = [control_dir, target_dir]
+                for d in dirs_to_check:
+                    if os.path.exists(d):
+                        for f in os.listdir(d):
+                            if f.startswith(filename_prefix):
+                                # expect format: prefix_00000.ext
+                                try:
+                                    # strip extension
+                                    base = os.path.splitext(f)[0]
+                                    # strip prefix
+                                    remain = base[len(filename_prefix):]
+                                    if remain.startswith('_') and remain[1:].isdigit():
+                                        idx = int(remain[1:])
+                                        if idx > max_idx:
+                                            max_idx = idx
+                                except:
+                                    continue
+                _SAVER_COUNTERS[key] = max_idx + 1
+            
+            # Auto mode: use global counter
+            current_idx = _SAVER_COUNTERS[key]
+            final_name = f"{filename_prefix}_{current_idx:04d}"
+            
+            # Update global counter for next auto-increment
+            _SAVER_COUNTERS[key] += 1
 
         else:
             # Keep Original logic
