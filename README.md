@@ -87,7 +87,7 @@ git clone https://github.com/HuangYuChuh/ComfyUI_Image_Anything.git
 
 **EditDatasetSaver更新**:
 无需任何额外设置。只要 `EditDatasetLoader` 获取到了干净的 `filename_stem`，Saver 就会自动以该名字保存所有输出文件（Control/Target/Txt），确保文件名一致。
-若要路径透传，可将 `directory` 连接到 Saver 的 `directory`。
+若要路径透传，可将 `directory` 连接到 Saver 的 `output_dir`。
 
 ### 3. V2 模块化批量保存 (`Batch_Save`)
 
@@ -127,7 +127,7 @@ git clone https://github.com/HuangYuChuh/ComfyUI_Image_Anything.git
    - **Output Root**: 设置保存结果的根目录。
    - **Naming Style**: 
      - 想要保持文件名不变？选 `Keep Original` 并连接 loader 的 `filename_stem`。
-     - 想要统一重命名？选 `Rename (Prefix + Index)` 并设置前缀（如 `AnyBG`）。
+     - 想要统一重命名？选 `Rename (Prefix + Auto-Inc)` 并设置前缀（如 `Dataset`）。
    - **Auto Increment**: 即使中断重启，"Rename" 模式也会自动检测已有文件，从下一个序号开始保存，**不会覆盖旧数据**。
 
 #### 高级技巧：重跑失败图片
