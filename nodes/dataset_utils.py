@@ -19,7 +19,7 @@ class EditDatasetLoader:
     Generic Folder Image Loader (Iterator)
     
     Logic:
-    1. Scans `directory` for images.
+    1. Scans `input_dir` for images.
     2. Returns image at `start_index` (or auto-incremented index).
     3. Returns filename stem, directory path, and current index for downstream use.
     """
@@ -237,7 +237,7 @@ class EditDatasetSaver:
     - Rename (Prefix + Auto-Inc): Uses filename_prefix + index (Auto-increment)
     
     Override:
-    - If `directory` is connected, it overrides `output_root`.
+    - If `output_dir` is connected, it overrides `output_root`.
     """
     def __init__(self):
         pass
