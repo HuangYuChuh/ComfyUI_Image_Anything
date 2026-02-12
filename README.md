@@ -45,7 +45,7 @@ git clone https://github.com/HuangYuChuh/ComfyUI_Image_Anything.git
 这些是专为自动化制作模型数据集（如 Qwen Edit、Kontext 等）设计的新节点。
 
 **EditDatasetLoader**:
-- **directory** (必需): 图片文件夹路径
+- **input_dir** (必需): 图片文件夹路径
 - **start_index** (必需): 起始索引（默认：0）
 - **auto_next** (可选): 自动递增索引（默认：True），关闭后固定读取 start_index
 - **reset_iterator** (可选): 强制重置索引到 start_index（默认：False）
@@ -63,7 +63,7 @@ git clone https://github.com/HuangYuChuh/ComfyUI_Image_Anything.git
 - **save_image_control/target**: 输入图片（可选）
 - **save_caption**: 输入文本标题（可选）
 - **save_format**: 保存格式（可选，支持 jpg/png/webp，默认 jpg）
-- **directory**: 强制输出路径（可选）。连接此端口将忽略 `output_root`，优先使用传入的路径。
+- **output_dir**: 强制输出路径（可选）。连接此端口将忽略 `output_root`，优先使用传入的路径。
 
 #### 高级功能：配对数据加载 (Paired Data Loading)
 支持加载训练常用的 "Target Image + Control Image" 数据对。
