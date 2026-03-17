@@ -5,13 +5,15 @@
 [![ComfyUI](https://img.shields.io/badge/ComfyUI-节点-blue)](https://github.com/comfyanonymous/ComfyUI)
 [![Python](https://img.shields.io/badge/Python-3.10+-blue)](https://www.python.org/)
 
-**ComfyUI Image Anything** 提供三大核心功能：
+**ComfyUI Image Anything** 提供四大核心功能：
 
 1. **批量保存工作流输出**：在一次任务运行中批量保存不同阶段的图片和文本，自动整理到统一的时间戳文件夹中。通过模块化设计（Image Batch + Text Batch + BatchImageSaverV2），你可以灵活组合任意数量的图片批次和文本批次。
 
 2. **数据集自动标注**：专为制作图像编辑模型（如 Qwen Edit、Kontext）训练数据集设计。提供自动迭代加载、结构化保存、失败重跑等功能，大幅提升数据集制作效率。
 
 3. **分桶图像标准化**：专为 SDXL/Flux 模型训练优化。智能检测图片比例，自动归一化到 `ai-toolkit` 支持的标准训练 Bucket 分辨率，确保零拉伸、无黑边。
+
+4. **图片文件夹迭代器**：从指定文件夹中逐张加载图片并执行工作流，配合 Auto Queue 实现全自动批量处理。支持提取文件名、自定义保存路径，适合批量图片处理场景。
 
 ## 安装方法
 
@@ -147,7 +149,44 @@ git clone https://github.com/HuangYuChuh/ComfyUI_Image_Anything.git
 [文本B] → [Text Batch B] → text_batch_2 → /
 ```
 
-### 4. 文本阻塞器 (`Text`)
+### 4. 图片文件夹迭代器 (`Iterator`)
+
+**Image Iterator**
+从指定文件夹中逐张迭代加载图片，每次执行加载一张，配合 ComfyUI 的 Auto Queue 模式可自动遍历整个文件夹。
+
+**参数**:
+- **folder_path** (必需): 图片文件夹的绝对路径
+- **sort_by** (必需): 排序方式（name_asc / name_desc / modified_asc / modified_desc）
+- **mode** (必需): 迭代模式
+  - `sequential`: 遍历完所有图片后自动停止
+  - `loop`: 循环迭代
+- **start_index** (可选): 起始索引，可跳转到指定位置（默认：0）
+- **reset** (可选): 重置迭代器到起始位置（默认：False）
+
+**输出**:
+- `image`: 当前图片
+- `mask`: 图片遮罩（支持透明通道）
+- `filename`: 文件名（不含扩展名）
+- `filename_with_ext`: 完整文件名（含扩展名）
+- `current_index`: 当前索引
+- `total_count`: 图片总数
+
+**Image Saver**
+保存处理后的图片，支持自定义路径和文件名，可配合 Image Iterator 使用。
+
+**参数**:
+- **image** (必需): 处理后的图片
+- **filename** (必需): 文件名（不含扩展名），可从 Image Iterator 连接
+- **save_path** (必需): 保存路径（绝对路径），留空则保存到 ComfyUI 默认输出目录
+
+**使用方式**:
+```
+[Image Iterator] ──→ [处理节点] ──→ [Image Saver]
+      └── filename ──────────────────→ filename
+```
+开启 ComfyUI 的 **Auto Queue** 模式，点击 Queue Prompt 即可自动逐张处理文件夹中的所有图片。
+
+### 5. 文本阻塞器 (`Text`)
 
 **Text Blocker**
 
@@ -188,5 +227,6 @@ output/
 | 预处理 | `🚦 ComfyUI_Image_Anything` → `Preprocess` | Smart Image Resize for Bucket |
 | 数据集 | `🚦 ComfyUI_Image_Anything` → `Edit_Image` | EditDatasetLoader, EditDatasetSaver |
 | 批量保存 | `🚦 ComfyUI_Image_Anything` → `Batch_Save` | Batch Image Saver V2, Image Collector, Text Collector |
+| 迭代器 | `🚦 ComfyUI_Image_Anything` → `Iterator` | Image Iterator, Image Saver |
 | 文本工具 | `🚦 ComfyUI_Image_Anything` → `Text` | Text Blocker |
 

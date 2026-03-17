@@ -3,6 +3,8 @@ from .nodes.batch_image_saver import BatchImageSaverV2, ImageCollector, TextColl
 from .nodes.dataset_utils import EditDatasetLoader, EditDatasetSaver
 from .nodes.smart_resize import SmartImageResizeForBucket
 from .nodes.text_blocker import TextBlocker
+from .nodes.image_iterator import ImageIterator
+from .nodes.image_saver import ImageSaver
 
 # 节点类映射 - ComfyUI 核心注册
 NODE_CLASS_MAPPINGS = {
@@ -13,6 +15,8 @@ NODE_CLASS_MAPPINGS = {
     "EditDatasetSaver": EditDatasetSaver,
     "SmartImageResizeForBucket": SmartImageResizeForBucket,
     "TextBlocker": TextBlocker,
+    "ImageIterator": ImageIterator,
+    "ImageSaver": ImageSaver,
 }
 
 # 节点显示名称映射
@@ -24,6 +28,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "EditDatasetSaver": "Edit Dataset Saver",
     "SmartImageResizeForBucket": "Smart Image Resize for Bucket",
     "TextBlocker": "Text Blocker",
+    "ImageIterator": "Image Iterator",
+    "ImageSaver": "Image Saver",
 }
 
 # Web 目录路径，用于加载前端JavaScript
