@@ -1,4 +1,5 @@
 
+from . import folder_picker_routes  # noqa: F401
 from .nodes.batch_image_saver import BatchImageSaverV2, ImageCollector, TextCollector
 from .nodes.dataset_utils import EditDatasetLoader, EditDatasetSaver
 from .nodes.smart_resize import SmartImageResizeForBucket
